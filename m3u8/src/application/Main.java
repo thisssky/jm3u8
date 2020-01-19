@@ -39,6 +39,7 @@ public class Main extends Application {
 	private GridPane gridPane;
 	private int rowIndex = 1;
 
+	
 	public static void main(String[] args) {
 		Application.launch(args);
 	}
