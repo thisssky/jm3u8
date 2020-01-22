@@ -160,9 +160,9 @@ public class MainView extends Application {
 					urlAlert.show();
 				}
 
-				ProgressContainer progressContainer = new ProgressContainer(downloadUrl, dir);
-				addProgressContainer(progressContainer);
 				if (null != downloadUrl && !downloadUrl.isEmpty() && null != dir && !dir.isEmpty()) {
+					ProgressContainer progressContainer = new ProgressContainer(downloadUrl, dir);
+					addProgressContainer(progressContainer);
 					// 启动下载
 					progressContainer.download();
 				}

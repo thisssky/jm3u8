@@ -9,16 +9,15 @@ import java.net.URL;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import application.dto.EXTINF;
+
 public class DownloadRunnable implements Runnable {
-	private ArrayBlockingQueue<String> queue;
-	private String prePath;
+	private ArrayBlockingQueue<EXTINF> queue;
 	private String dir;
 	private AtomicInteger atomicInteger;
 
-	public DownloadRunnable(String prePath, String dir, ArrayBlockingQueue<String> arrayBlockingQueue,
-			AtomicInteger atomicInteger) {
+	public DownloadRunnable(String dir, ArrayBlockingQueue<EXTINF> arrayBlockingQueue, AtomicInteger atomicInteger) {
 		this.dir = dir;
-		this.prePath = prePath;
 		this.queue = arrayBlockingQueue;
 		this.atomicInteger = atomicInteger;
 	}
@@ -27,16 +26,16 @@ public class DownloadRunnable implements Runnable {
 	public void run() {
 		FileOutputStream fileOutputStream = null;
 		DataInputStream dataInputStream = null;
-		String urlpath = null;
+		EXTINF extinf = null;
 		try {
 			while (true) {
-				urlpath = queue.poll();
-				if (null != urlpath) {
+				extinf = queue.poll();
+				if (null != extinf) {
 
-					URL url = new URL(prePath + urlpath);
+					URL url = new URL(extinf.getUrl());
 					// 下载资源
 					dataInputStream = new DataInputStream(url.openStream());
-					String fileOutPath = dir + File.separator + urlpath;
+					String fileOutPath = dir + File.separator + extinf.getIndex() + "-" + extinf.getName();
 					fileOutputStream = new FileOutputStream(new File(fileOutPath));
 					byte[] bytes = new byte[1024];
 					int length = 0;
@@ -50,17 +49,15 @@ public class DownloadRunnable implements Runnable {
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			System.err.println("插入队列中:" + urlpath);
-			queue.offer(urlpath);
+//			System.err.println("插入队列中:" + urlpath);
+			queue.offer(extinf);
 		} finally {
 			try {
 				fileOutputStream.close();
 			} catch (IOException e) {
-				System.err.println("close err");
 				e.printStackTrace();
 			}
 			try {
-				System.err.println("close err");
 				dataInputStream.close();
 			} catch (IOException e) {
 				e.printStackTrace();

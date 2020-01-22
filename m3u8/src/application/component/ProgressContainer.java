@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import application.dto.EXTINF;
 import application.runnable.DownloadRunnable;
 import application.utils.CommonUtility;
 import application.utils.FFMPEG;
@@ -45,7 +46,7 @@ public class ProgressContainer {
 	private Service<Integer> progressBarService;
 	private Service<String> progressBarTextService;
 	private AtomicInteger atomicInteger = new AtomicInteger(0);
-	private List<String> list;
+	private List<EXTINF> list;
 	private String downloadUrl;
 	private String dir;
 	private int num=20;
@@ -140,16 +141,15 @@ private	ExecutorService es = Executors.newFixedThreadPool(num);
 //
 //						dir = "C:\\Users\\kyh\\Desktop\\m3u8\\sn";
 
-						list = M3U8.getList(downloadUrl);
+						list = M3U8.ts(dir,downloadUrl);
 						int size = list.size();
-						ArrayBlockingQueue<String> arrayBlockingQueue = new ArrayBlockingQueue<String>(size);
+						ArrayBlockingQueue<EXTINF> arrayBlockingQueue = new ArrayBlockingQueue<EXTINF>(size);
 						arrayBlockingQueue.addAll(list);
 						progressBarTextService.restart();
 
-						String prePath = downloadUrl.substring(0, downloadUrl.lastIndexOf("/") + 1);
-						// 下载视频片段，分成多个线程下载
+         						// 下载视频片段，分成多个线程下载
 						for (int i = 0; i < num; i++) {
-							es.execute(new DownloadRunnable(prePath, dir, arrayBlockingQueue, atomicInteger));
+							es.execute(new DownloadRunnable(dir, arrayBlockingQueue, atomicInteger));
 						}
 						//
 						TimerTask timerTask = new TimerTask() {
