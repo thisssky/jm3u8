@@ -31,7 +31,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
-public class Main extends Application {
+public class MainView extends Application {
 	private Stage primaryStage;
 	private TextField urlTextField;
 	private TextField dirTextField;
@@ -39,7 +39,6 @@ public class Main extends Application {
 	private GridPane gridPane;
 	private int rowIndex = 1;
 
-	
 	public static void main(String[] args) {
 		Application.launch(args);
 	}
@@ -161,9 +160,9 @@ public class Main extends Application {
 					urlAlert.show();
 				}
 
+				ProgressContainer progressContainer = new ProgressContainer(downloadUrl, dir);
+				addProgressContainer(progressContainer);
 				if (null != downloadUrl && !downloadUrl.isEmpty() && null != dir && !dir.isEmpty()) {
-					ProgressContainer progressContainer = new ProgressContainer(downloadUrl, dir);
-					addProgressContainer(progressContainer);
 					// 启动下载
 					progressContainer.download();
 				}
@@ -176,5 +175,5 @@ public class Main extends Application {
 		gridPane.add(progressContainer.getLabel(), 0, ++rowIndex);
 		gridPane.add(progressContainer.gethBox(), 1, rowIndex);
 	}
- 
+
 }

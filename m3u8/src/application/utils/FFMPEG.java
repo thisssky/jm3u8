@@ -72,6 +72,7 @@ public  class FFMPEG {
 			}
 			return false;
 		}
+		//ffmpeg -i https://www2.800-cdn.com/20200117/oEPSuMue/index.m3u8 C:\Users\kyh\Desktop\m3u8\name.mp4
 
 		private static List<String> getFfmpegCommand(String tsfilepath, String out) {
 			List<String> command = new ArrayList<>();
@@ -143,5 +144,7 @@ public  class FFMPEG {
 			List<String> command =  getFfmpegCommand(tsfilepath, dir + File.separator + "out.mp4");
 			process(command);
 		}
-
+public static void main(String[] args) {
+	merge("C:\\Users\\kyh\\Desktop\\m3u8\\sg02");
+}
 	}

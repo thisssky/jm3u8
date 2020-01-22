@@ -1,6 +1,8 @@
 package application.component;
 
+import java.awt.Desktop;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -15,14 +17,18 @@ import application.utils.FFMPEG;
 import application.utils.M3U8;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -77,9 +83,49 @@ private	ExecutorService es = Executors.newFixedThreadPool(num);
 		gridPane.add(progressBarTextLabel, 0, 0);
 		hBox.getChildren().add(gridPane);
 		hBox.getChildren().add(megerButton);
+		
+		progressBar.setOnMouseClicked(new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent event) {
+				if (MouseButton.SECONDARY==event.getButton()) {
+					ContextMenu dirMenuItem = dirMenuItem();
+					progressBar.setContextMenu(dirMenuItem);
+				}
+				 
+			}
+		});
+		progressBarTextLabel.setOnMouseClicked(new EventHandler<MouseEvent>() {
+			
+			@Override
+			public void handle(MouseEvent event) {
+				if (MouseButton.SECONDARY==event.getButton()) {
+					ContextMenu dirMenuItem = dirMenuItem();
+					progressBarTextLabel.setContextMenu(dirMenuItem);
+				}
+				
+			}
+		});
 
 	}
 
+	public ContextMenu dirMenuItem() {
+		ContextMenu contextMenu = new ContextMenu();
+		MenuItem menuItem = new MenuItem("文件夾");
+		menuItem.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				try {
+					Desktop.getDesktop().open(new File("C:\\Users\\kyh\\Desktop\\m3u8"));
+				} catch (IOException e) {
+				}
+				
+			}
+		});
+		contextMenu.getItems().addAll(menuItem);
+		return contextMenu;
+	}
 	public void download() {
 		progressBarService = new Service<Integer>() {
 
