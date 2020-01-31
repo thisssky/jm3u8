@@ -3,7 +3,7 @@ package application;
 import java.io.File;
 import java.util.ArrayList;
 
-import application.component.ProgressContainer;
+import application.component.ButtonTableCell;
 import application.dto.EXTINF;
 import application.utils.CommonUtility;
 import javafx.application.Application;
@@ -14,15 +14,17 @@ import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
@@ -30,19 +32,21 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.util.Callback;
 
 public class MainView extends Application {
 	private Stage primaryStage;
 	private TextField urlTextField;
 	private TextField dirTextField;
 	private Button downloadButton;
-	private GridPane gridPane;
-	public static int rowIndex = 1;
+	private TableView<EXTINF> tableView;
 
 	public static void main(String[] args) {
 		Application.launch(args);
@@ -62,11 +66,16 @@ public class MainView extends Application {
 		ObservableList<javafx.scene.image.Image> icons = primaryStage.getIcons();
 		icons.add(CommonUtility.getImage("title.png"));
 
-		VBox root = new VBox();
-//		root.setBackground(new Background(new BackgroundFill(Color.DARKGRAY, null, null)));
-		Scene scene = new Scene(root, 500, 300, Color.WHITE);
+		Region leftRegion = new Region();
+		SplitPane splitPane = new SplitPane();
+		splitPane.setDividerPositions(0.3, 0.7);
+
+		Scene scene = new Scene(splitPane, 800, 500, Color.WHITE);
 		primaryStage.setResizable(false);
 
+		VBox root = new VBox();
+		splitPane.getItems().addAll(leftRegion, root);
+//		root.setBackground(new Background(new BackgroundFill(Color.DARKGRAY, null, null)));
 		GridPane pane = new GridPane();
 //		pane.setBackground(new Background(new BackgroundFill(Color.RED, null, null)));
 		VBox.setMargin(pane, new Insets(10, 50, 0, 50));
@@ -95,17 +104,23 @@ public class MainView extends Application {
 		pane.add(dirLabel, 0, 1);
 		pane.add(dirHBox, 1, 1);
 
-//		ScrollPane scrollPane = new ScrollPane();
-//		scrollPane.setHbarPolicy(ScrollBarPolicy.NEVER);
-//		scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
-//		gridPane = new GridPane();
-//		gridPane.setVgap(5);
-//		scrollPane.setContent(gridPane);
-//		pane.add(scrollPane, 0, 2, 2, 1);
+		tableView = new TableView<EXTINF>();
+		Label label = new Label("快来下载吧!!!");
+		label.setFont(new Font(30));
+		tableView.setPlaceholder(label);
+		//自动拉伸列，是所有的列占满整个表格
+		tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+		TableViewSelectionModel<EXTINF> selectionModel = tableView.getSelectionModel();
+		// set selection mode to only 1 row
+//		selectionModel.setSelectionMode(SelectionMode.SINGLE);
+		// set selection mode to multiple rows
+//		selectionModel.setSelectionMode(SelectionMode.MULTIPLE);
+//		ObservableList<EXTINF> selectedItems = selectionModel.getSelectedItems();
+//		selectionModel.clearSelection();
 
-		TableView<EXTINF> tableView = new TableView<EXTINF>();
-		TableColumn firstColumn = new TableColumn("");
-		firstColumn.setCellFactory((col) -> {
+		TableColumn<EXTINF, String> indexColumn = new TableColumn<EXTINF, String>("#");
+		indexColumn.setSortable(true);
+		indexColumn.setCellFactory((col) -> {
 			TableCell<EXTINF, String> cell = new TableCell<EXTINF, String>() {
 				@Override
 				public void updateItem(String item, boolean empty) {
@@ -121,23 +136,41 @@ public class MainView extends Application {
 			};
 			return cell;
 		});
-		TableCell<EXTINF, String> tableCell = new TableCell<EXTINF, String>();
-//		firstColumn.setCellFactory(new Callback<TableColumn<EXTINF, String>, TableCell<EXTINF, String>>() {
-//
-//			@Override
-//			public TableCell<EXTINF, String> call(TableColumn<EXTINF, String> param) {
-//				return null;
-//			}
+		TableColumn<EXTINF, String> nameColumn = new TableColumn<EXTINF, String>("名称");
+		TableColumn<EXTINF, String> progressColumn = new TableColumn<EXTINF, String>("已完成");
+		TableColumn<EXTINF, String> dirColumn = new TableColumn<EXTINF, String>("保存路径");
+		TableColumn<EXTINF, CheckBox> mergeColumn = new TableColumn<EXTINF, CheckBox>("合并");
+		mergeColumn.setSortable(false);
+		mergeColumn.setPrefWidth(28);
+		mergeColumn.setMaxWidth(28);
+		mergeColumn.setCellFactory(new Callback<TableColumn<EXTINF, CheckBox>, TableCell<EXTINF, CheckBox>>() {
+			
+			@Override
+			public TableCell<EXTINF, CheckBox> call(TableColumn<EXTINF, CheckBox> param) {
+				CheckBoxTableCell<EXTINF, CheckBox> checkBoxTableCell = new CheckBoxTableCell<EXTINF, CheckBox>();
+				return checkBoxTableCell;
+			}
+		});
+		TableColumn<EXTINF, Button> optColumn = new TableColumn<EXTINF, Button>("操作");
+		optColumn.setSortable(false);
+//		optColumn.setCellFactory((callback) -> {
+//			ButtonTableCell cell = new ButtonTableCell();
+//			return cell;
 //		});
-		TableColumn secondColumn = new TableColumn("名称");
-		TableColumn thirdColumn = new TableColumn("已完成");
-		TableColumn fourColumn = new TableColumn("保存路径");
-		fourColumn.setCellValueFactory(new PropertyValueFactory<EXTINF, String>("dir"));
+		optColumn.setCellFactory(new Callback<TableColumn<EXTINF, Button>, TableCell<EXTINF, Button>>() {
+
+			@Override
+			public TableCell<EXTINF, Button> call(TableColumn<EXTINF, Button> param) {
+				ButtonTableCell tableCell = new ButtonTableCell("合并");
+				return tableCell;
+			}
+		});
+		dirColumn.setCellValueFactory(new PropertyValueFactory<EXTINF, String>("dir"));
 //		
 		// https://blog.csdn.net/servermanage/article/details/102317726
 		// https://blog.csdn.net/MrChung2016/article/details/71774496
 
-		tableView.getColumns().addAll(firstColumn, secondColumn, thirdColumn, fourColumn);
+		tableView.getColumns().addAll(indexColumn, nameColumn, progressColumn, dirColumn, mergeColumn, optColumn);
 		ArrayList<EXTINF> arrayList = new ArrayList<EXTINF>();
 		for (int i = 0; i < 10; i++) {
 			EXTINF progressContainer = new EXTINF();
@@ -215,48 +248,33 @@ public class MainView extends Application {
 				String downloadUrl = urlTextField.getText();
 				String dir = dirTextField.getText();
 				Image image = CommonUtility.getImage("title.png");
-				if (null == downloadUrl || "".equals(downloadUrl.trim())) {
-					Alert urlAlert = new Alert(AlertType.ERROR);
-					Stage window = (Stage) urlAlert.getDialogPane().getScene().getWindow();
-					window.getIcons().add(image);
-					urlAlert.setHeaderText("下载链接不能为空!");
-					urlAlert.setTitle("提示");
-					urlAlert.show();
-				} else if (null == dir || "".equals(dir.trim())) {
-					Alert urlAlert = new Alert(AlertType.ERROR);
-					Stage window = (Stage) urlAlert.getDialogPane().getScene().getWindow();
-					window.getIcons().add(image);
-					urlAlert.setHeaderText("保存路径不能为空!");
-					urlAlert.setTitle("提示");
-					urlAlert.show();
-				}
+//				if (null == downloadUrl || "".equals(downloadUrl.trim())) {
+//					Alert urlAlert = new Alert(AlertType.ERROR);
+//					Stage window = (Stage) urlAlert.getDialogPane().getScene().getWindow();
+//					window.getIcons().add(image);
+//					urlAlert.setHeaderText("下载链接不能为空!");
+//					urlAlert.setTitle("提示");
+//					urlAlert.show();
+//				} else if (null == dir || "".equals(dir.trim())) {
+//					Alert urlAlert = new Alert(AlertType.ERROR);
+//					Stage window = (Stage) urlAlert.getDialogPane().getScene().getWindow();
+//					window.getIcons().add(image);
+//					urlAlert.setHeaderText("保存路径不能为空!");
+//					urlAlert.setTitle("提示");
+//					urlAlert.show();
+//				}
+				EXTINF extinf = new EXTINF();
+				extinf.setDir("xxxxxxxxxxx");
+				tableView.getItems().add(extinf);
 
-				ProgressContainer progressContainer = new ProgressContainer(downloadUrl, dir);
-				addProgressContainer(progressContainer);
 				if (null != downloadUrl && !downloadUrl.isEmpty() && null != dir && !dir.isEmpty()) {
 					// 启动下载
-					progressContainer.download();
+//				ProgressContainer progressContainer = new ProgressContainer(downloadUrl, dir);
+//				addProgressContainer(progressContainer);
+//					progressContainer.download();
 				}
 			}
 		});
-	}
-
-	public void addProgressContainer(ProgressContainer progressContainer) {
-		GridPane.setHalignment(progressContainer.getLabel(), HPos.RIGHT);
-		++rowIndex;
-		gridPane.add(progressContainer.getLabel(), 0, rowIndex);
-		gridPane.add(progressContainer.gethBox(), 1, rowIndex);
-	}
-
-	public void remove(int index) {
-
-//GridPane p=new GridPane();
-//p.getChildren().clear();        //清空面板
-//p.getChildren().remove(int index);   //根据下标去除结点
-//p.getChildren().remove(Node );        //去除node结点
-//p.getChildren().remove(int form,int to);  //根据范围去除结点
-//p.getChildren().removeAll(Node...elements) //根据一个Node组去除结点 
-		gridPane.getChildren().remove(index);
 	}
 
 }
