@@ -32,6 +32,10 @@ public class DownloadRunnable implements Runnable {
 				extinf = queue.poll();
 				if (null != extinf) {
 
+					File file = new File(dir);
+					if (!file.exists()) {
+						file.mkdirs();
+					}
 					URL url = new URL(extinf.getUrl());
 					// 下载资源
 					dataInputStream = new DataInputStream(url.openStream());
