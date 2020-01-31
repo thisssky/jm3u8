@@ -1,10 +1,13 @@
 package application;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import application.component.ProgressContainer;
+import application.dto.EXTINF;
 import application.utils.CommonUtility;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -15,10 +18,12 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -37,7 +42,7 @@ public class MainView extends Application {
 	private TextField dirTextField;
 	private Button downloadButton;
 	private GridPane gridPane;
-	private int rowIndex = 1;
+	public static int rowIndex = 1;
 
 	public static void main(String[] args) {
 		Application.launch(args);
@@ -90,17 +95,83 @@ public class MainView extends Application {
 		pane.add(dirLabel, 0, 1);
 		pane.add(dirHBox, 1, 1);
 
-		ScrollPane scrollPane = new ScrollPane();
-		scrollPane.setHbarPolicy(ScrollBarPolicy.NEVER);
-		scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
-		gridPane = new GridPane();
-		gridPane.setVgap(5);
-		scrollPane.setContent(gridPane);
-		pane.add(scrollPane, 0, 2, 2, 1);
+//		ScrollPane scrollPane = new ScrollPane();
+//		scrollPane.setHbarPolicy(ScrollBarPolicy.NEVER);
+//		scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+//		gridPane = new GridPane();
+//		gridPane.setVgap(5);
+//		scrollPane.setContent(gridPane);
+//		pane.add(scrollPane, 0, 2, 2, 1);
+
+		TableView<EXTINF> tableView = new TableView<EXTINF>();
+		TableColumn firstColumn = new TableColumn("");
+		firstColumn.setCellFactory((col) -> {
+			TableCell<EXTINF, String> cell = new TableCell<EXTINF, String>() {
+				@Override
+				public void updateItem(String item, boolean empty) {
+					super.updateItem(item, empty);
+					this.setText(null);
+					this.setGraphic(null);
+
+					if (!empty) {
+						int rowIndex = this.getIndex() + 1;
+						this.setText(String.valueOf(rowIndex));
+					}
+				}
+			};
+			return cell;
+		});
+		TableCell<EXTINF, String> tableCell = new TableCell<EXTINF, String>();
+//		firstColumn.setCellFactory(new Callback<TableColumn<EXTINF, String>, TableCell<EXTINF, String>>() {
+//
+//			@Override
+//			public TableCell<EXTINF, String> call(TableColumn<EXTINF, String> param) {
+//				return null;
+//			}
+//		});
+		TableColumn secondColumn = new TableColumn("名称");
+		TableColumn thirdColumn = new TableColumn("已完成");
+		TableColumn fourColumn = new TableColumn("保存路径");
+		fourColumn.setCellValueFactory(new PropertyValueFactory<EXTINF, String>("dir"));
+//		
+		// https://blog.csdn.net/servermanage/article/details/102317726
+		// https://blog.csdn.net/MrChung2016/article/details/71774496
+
+		tableView.getColumns().addAll(firstColumn, secondColumn, thirdColumn, fourColumn);
+		ArrayList<EXTINF> arrayList = new ArrayList<EXTINF>();
+		for (int i = 0; i < 10; i++) {
+			EXTINF progressContainer = new EXTINF();
+			progressContainer.setDir("dir" + i);
+			arrayList.add(progressContainer);
+		}
+
+		ObservableList<EXTINF> observableArrayList = FXCollections.observableArrayList(arrayList);
+		tableView.setItems(observableArrayList);
+		pane.add(tableView, 0, 2, 2, 1);
 
 		primaryStage.setScene(scene);
 		primaryStage.show();
 
+	}
+
+	public void showStuTable(ObservableList<EXTINF> stuLists) {
+		TableColumn<EXTINF, String> idCol = new TableColumn<EXTINF, String>();
+		idCol.setCellFactory((col) -> {
+			TableCell<EXTINF, String> cell = new TableCell<EXTINF, String>() {
+				@Override
+				public void updateItem(String item, boolean empty) {
+					super.updateItem(item, empty);
+					this.setText(null);
+					this.setGraphic(null);
+
+					if (!empty) {
+						int rowIndex = this.getIndex() + 1;
+						this.setText(String.valueOf(rowIndex));
+					}
+				}
+			};
+			return cell;
+		});
 	}
 
 	private void initEventHandler() {
@@ -160,9 +231,9 @@ public class MainView extends Application {
 					urlAlert.show();
 				}
 
+				ProgressContainer progressContainer = new ProgressContainer(downloadUrl, dir);
+				addProgressContainer(progressContainer);
 				if (null != downloadUrl && !downloadUrl.isEmpty() && null != dir && !dir.isEmpty()) {
-					ProgressContainer progressContainer = new ProgressContainer(downloadUrl, dir);
-					addProgressContainer(progressContainer);
 					// 启动下载
 					progressContainer.download();
 				}
@@ -172,8 +243,20 @@ public class MainView extends Application {
 
 	public void addProgressContainer(ProgressContainer progressContainer) {
 		GridPane.setHalignment(progressContainer.getLabel(), HPos.RIGHT);
-		gridPane.add(progressContainer.getLabel(), 0, ++rowIndex);
+		++rowIndex;
+		gridPane.add(progressContainer.getLabel(), 0, rowIndex);
 		gridPane.add(progressContainer.gethBox(), 1, rowIndex);
+	}
+
+	public void remove(int index) {
+
+//GridPane p=new GridPane();
+//p.getChildren().clear();        //清空面板
+//p.getChildren().remove(int index);   //根据下标去除结点
+//p.getChildren().remove(Node );        //去除node结点
+//p.getChildren().remove(int form,int to);  //根据范围去除结点
+//p.getChildren().removeAll(Node...elements) //根据一个Node组去除结点 
+		gridPane.getChildren().remove(index);
 	}
 
 }
