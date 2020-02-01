@@ -79,46 +79,62 @@ public class M3U8 {
 
 	public static void main(String[] args) {
 		// https://www2.800-cdn.com/20200117/oEPSuMue/index.m3u8
-		ts("C:\\Users\\kyh\\Desktop\\m3u8\\xxx-",
-				"http://youku.cdn4-okzy.com/20191126/2980_2373c5f5/1000k/hls/index.m3u8");
+//		ts("C:\\Users\\kyh\\Desktop\\m3u8\\xxx-",
+//				"http://youku.cdn4-okzy.com/20191126/2980_2373c5f5/1000k/hls/index.m3u8");
 	}
 
-	public static List<EXTINF> ts(String dir, String indexUrl) {
-		List<String> list = index(indexUrl);
+	public static List<EXTINF> ts(String m3u8, String dir) {
+		List<String> list = index(m3u8);
 		String last = list.get(list.size() - 1);
 		while (!ENDLIST.equalsIgnoreCase(last)) {
 			// 如果不是#EXT-X-ENDLIST結尾还需继续
-			String prefix = indexUrl.substring(0, indexUrl.lastIndexOf("/") + 1);
+			String prefix = m3u8.substring(0, m3u8.lastIndexOf("/") + 1);
 			if (last.startsWith("/")) {
-				indexUrl = prefix + last.substring(1);
+				m3u8 = prefix + last.substring(1);
 			} else {
-				indexUrl = prefix + last;
+				m3u8 = prefix + last;
 			}
-			list = index(indexUrl);
+			list = index(m3u8);
 			last = list.get(list.size() - 1);
 		}
+
+		File dirFile = new File(dir);
+		if (!dirFile.exists()) {
+			dirFile.mkdirs();
+		}
+		String filePath = dir + File.separator + "tsFile.txt";
+		File file = new File(filePath);
+		file.delete();
 		// 处理ts序列
 		ArrayList<EXTINF> ts = new ArrayList<EXTINF>();
 		EXTINF extinf;
 		int index = 0;
-		for (String e : list) {
-			String prefix = indexUrl.substring(0, indexUrl.lastIndexOf("/") + 1);
-			if (e.endsWith(".ts")) {
-				if (e.startsWith("/")) {
-					extinf = new EXTINF(index, prefix + e.substring(1), e.substring(e.lastIndexOf("/") + 1));
+		file.delete();
+		for (String data : list) {
+			String prefix = m3u8.substring(0, m3u8.lastIndexOf("/") + 1);
+			if (data.endsWith(".ts")) {
+				if (data.startsWith("/")) {
+					extinf = new EXTINF(m3u8, dir, index);
+					;
+					extinf.setTs(prefix + data.substring(1));
+					extinf.setTsName(data.substring(data.lastIndexOf("/") + 1));
+//					extinf = new EXTINF(index, prefix + data.substring(1), data.substring(data.lastIndexOf("/") + 1));
 					ts.add(extinf);
 				} else {
-					extinf = new EXTINF(index, prefix + e, e.substring(e.lastIndexOf("/") + 1));
+					extinf = new EXTINF(m3u8, dir, index);
+					;
+					extinf.setTs(prefix + data);
+					extinf.setTsName(data.substring(data.lastIndexOf("/") + 1));
+//					extinf = new EXTINF(index, prefix + data, data.substring(data.lastIndexOf("/") + 1));
 					ts.add(extinf);
 				}
 				index++;
-				// 写下ts文件
-				String filePath = dir + File.separator + "tsFile.txt";
 
+				// 写下ts文件
 				StringBuilder sb = new StringBuilder();
 				sb.append("file ");
 				sb.append("'");
-				sb.append(dir + File.separator + extinf.getIndex() + "-" + extinf.getName());
+				sb.append(dir + File.separator + extinf.getIndex() + "-" + extinf.getTsName());
 				sb.append("'");
 				sb.append("\r\n");
 				tsFile(filePath, sb.toString());
@@ -128,17 +144,24 @@ public class M3U8 {
 	}
 
 	public static void tsFile(String fileName, String content) {
+		RandomAccessFile randomFile = null;
 		try {
 			// 打开一个随机访问文件流，按读写方式
-			RandomAccessFile randomFile = new RandomAccessFile(fileName, "rw");
+			randomFile = new RandomAccessFile(fileName, "rw");
 			// 文件长度，字节数
 			long fileLength = randomFile.length();
 			// 将写文件指针移到文件尾。
 			randomFile.seek(fileLength);
 			randomFile.writeBytes(content);
-			randomFile.close();
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally {
+			try {
+				randomFile.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
 		}
 	}
 

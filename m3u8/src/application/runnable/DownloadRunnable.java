@@ -15,11 +15,15 @@ public class DownloadRunnable implements Runnable {
 	private ArrayBlockingQueue<EXTINF> queue;
 	private String dir;
 	private AtomicInteger atomicInteger;
+	private int count;
 
-	public DownloadRunnable(String dir, ArrayBlockingQueue<EXTINF> arrayBlockingQueue, AtomicInteger atomicInteger) {
+	public DownloadRunnable(String dir, ArrayBlockingQueue<EXTINF> arrayBlockingQueue, AtomicInteger atomicInteger,
+			int count) {
+
 		this.dir = dir;
 		this.queue = arrayBlockingQueue;
 		this.atomicInteger = atomicInteger;
+		this.count = count;
 	}
 
 	@Override
@@ -36,10 +40,10 @@ public class DownloadRunnable implements Runnable {
 					if (!file.exists()) {
 						file.mkdirs();
 					}
-					URL url = new URL(extinf.getUrl());
+					URL url = new URL(extinf.getTs());
 					// 下载资源
 					dataInputStream = new DataInputStream(url.openStream());
-					String fileOutPath = dir + File.separator + extinf.getIndex() + "-" + extinf.getName();
+					String fileOutPath = dir + File.separator + extinf.getIndex() + "-" + extinf.getTsName();
 					fileOutputStream = new FileOutputStream(new File(fileOutPath));
 					byte[] bytes = new byte[1024];
 					int length = 0;

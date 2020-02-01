@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import application.dto.EXTINF;
 import application.runnable.DownloadRunnable;
+import application.utils.JAXBUtils;
 import application.utils.M3U8;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
@@ -35,14 +36,14 @@ public class ProgressBarBox extends Pane {
 	private Service<String> progressBarTextService;
 	private AtomicInteger atomicInteger = new AtomicInteger(0);
 	private List<EXTINF> list;
-	private String downloadUrl;
+	private String m3u8;
 	private String dir;
 	private int num = 4;
 	private Timer timer = new Timer();
 	private ExecutorService es = Executors.newFixedThreadPool(num);
 
-	public ProgressBarBox(String downloadUrl, String dir) {
-		this.downloadUrl = downloadUrl;
+	public ProgressBarBox(String m3u8, String dir) {
+		this.m3u8 = m3u8;
 		this.dir = dir;
 		progressBar = new ProgressBar();
 		progressBar.focusTraversableProperty().get();
@@ -106,33 +107,29 @@ public class ProgressBarBox extends Pane {
 					@Override
 					protected Integer call() throws Exception {
 
-//						downloadUrl = "http://youku.cdn4-okzy.com/20191126/2980_2373c5f5/1000k/hls/index.m3u8";
-//						downloadUrl = "https://video.huishenghuo888888.com/putong/20200109/Nd9lGHjL/500kb/hls/index.m3u8";
-//
-//						dir = "C:\\Users\\kyh\\Desktop\\m3u8\\sn";
-
-						list = M3U8.ts(dir, downloadUrl);
+						list = M3U8.ts(m3u8, dir);
+						JAXBUtils.create(dir, list);
 						int size = list.size();
 						ArrayBlockingQueue<EXTINF> arrayBlockingQueue = new ArrayBlockingQueue<EXTINF>(size);
 						arrayBlockingQueue.addAll(list);
 						progressBarTextService.restart();
 
-						// 下载视频片段，分成多个线程下载
 						for (int i = 0; i < num; i++) {
-							es.execute(new DownloadRunnable(dir, arrayBlockingQueue, atomicInteger));
+							es.execute(new DownloadRunnable(dir, arrayBlockingQueue, atomicInteger, size));
 						}
-						//
+
 						TimerTask timerTask = new TimerTask() {
 
 							@Override
 							public void run() {
 								int a = atomicInteger.get();
+
 								double p = (double) 100 * a / size;
-								System.out.println("timerTask:" + a + "," + p);
+//								System.out.println("timerTask:" + a + "," + p);
 								updateProgress(p);
 							}
 						};
-						timer.scheduleAtFixedRate(timerTask, 0, 500);
+						timer.scheduleAtFixedRate(timerTask, 0, 1000);
 
 						return null;
 					}
@@ -161,11 +158,11 @@ public class ProgressBarBox extends Pane {
 								int a = atomicInteger.get();
 								double p = (double) 100 * a / list.size();
 								String f = String.format("%.2f%%", p);
-								System.out.println("timerTask2:" + f);
+//								System.out.println("timerTask2:" + f);
 								updateTitle(f);
 							}
 						};
-						timer.scheduleAtFixedRate(timerTask, 0, 500);
+						timer.scheduleAtFixedRate(timerTask, 0, 1000);
 						return null;
 					}
 				};

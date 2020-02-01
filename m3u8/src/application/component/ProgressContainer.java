@@ -49,11 +49,10 @@ public class ProgressContainer {
 	private List<EXTINF> list;
 	private String downloadUrl;
 	private String dir;
-	private int num=20;
+	private int num = 20;
 	private Timer timer = new Timer();
 
-private	ExecutorService es = Executors.newFixedThreadPool(num);
-
+	private ExecutorService es = Executors.newFixedThreadPool(num);
 
 	public Label getLabel() {
 		return label;
@@ -62,7 +61,6 @@ private	ExecutorService es = Executors.newFixedThreadPool(num);
 	public HBox gethBox() {
 		return hBox;
 	}
-
 
 	public ProgressContainer(String downloadUrl, String dir) {
 		this.downloadUrl = downloadUrl;
@@ -84,27 +82,27 @@ private	ExecutorService es = Executors.newFixedThreadPool(num);
 		gridPane.add(progressBarTextLabel, 0, 0);
 		hBox.getChildren().add(gridPane);
 		hBox.getChildren().add(megerButton);
-		
+
 		progressBar.setOnMouseClicked(new EventHandler<MouseEvent>() {
 
 			@Override
 			public void handle(MouseEvent event) {
-				if (MouseButton.SECONDARY==event.getButton()) {
+				if (MouseButton.SECONDARY == event.getButton()) {
 					ContextMenu dirMenuItem = dirMenuItem();
 					progressBar.setContextMenu(dirMenuItem);
 				}
-				 
+
 			}
 		});
 		progressBarTextLabel.setOnMouseClicked(new EventHandler<MouseEvent>() {
-			
+
 			@Override
 			public void handle(MouseEvent event) {
-				if (MouseButton.SECONDARY==event.getButton()) {
+				if (MouseButton.SECONDARY == event.getButton()) {
 					ContextMenu dirMenuItem = dirMenuItem();
 					progressBarTextLabel.setContextMenu(dirMenuItem);
 				}
-				
+
 			}
 		});
 
@@ -121,12 +119,13 @@ private	ExecutorService es = Executors.newFixedThreadPool(num);
 					Desktop.getDesktop().open(new File("C:\\Users\\kyh\\Desktop\\m3u8"));
 				} catch (IOException e) {
 				}
-				
+
 			}
 		});
 		contextMenu.getItems().addAll(menuItem);
 		return contextMenu;
 	}
+
 	public void download() {
 		progressBarService = new Service<Integer>() {
 
@@ -141,15 +140,15 @@ private	ExecutorService es = Executors.newFixedThreadPool(num);
 //
 //						dir = "C:\\Users\\kyh\\Desktop\\m3u8\\sn";
 
-						list = M3U8.ts(dir,downloadUrl);
+						list = M3U8.ts(dir, downloadUrl);
 						int size = list.size();
 						ArrayBlockingQueue<EXTINF> arrayBlockingQueue = new ArrayBlockingQueue<EXTINF>(size);
 						arrayBlockingQueue.addAll(list);
 						progressBarTextService.restart();
 
-         						// 下载视频片段，分成多个线程下载
+						// 下载视频片段，分成多个线程下载
 						for (int i = 0; i < num; i++) {
-							es.execute(new DownloadRunnable(dir, arrayBlockingQueue, atomicInteger));
+							es.execute(new DownloadRunnable(dir, arrayBlockingQueue, atomicInteger, size));
 						}
 						//
 						TimerTask timerTask = new TimerTask() {
@@ -207,9 +206,6 @@ private	ExecutorService es = Executors.newFixedThreadPool(num);
 		progressBarService.restart();
 		progressBarTextLabel.textProperty().bind(progressBarTextService.titleProperty());
 
-		
-		
-		
 		megerButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
 
 			@Override
