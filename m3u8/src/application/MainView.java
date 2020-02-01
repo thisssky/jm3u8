@@ -3,7 +3,7 @@ package application;
 import java.io.File;
 import java.util.ArrayList;
 
-import application.component.ButtonTableCell;
+import application.component.ProgressBarBox;
 import application.dto.EXTINF;
 import application.utils.CommonUtility;
 import javafx.application.Application;
@@ -16,7 +16,9 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -24,14 +26,12 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -68,48 +68,65 @@ public class MainView extends Application {
 
 		Region leftRegion = new Region();
 		SplitPane splitPane = new SplitPane();
-		splitPane.setDividerPositions(0.3, 0.7);
+		splitPane.setDividerPositions(0.2, 0.8);
 
 		Scene scene = new Scene(splitPane, 800, 500, Color.WHITE);
-		primaryStage.setResizable(false);
+//		primaryStage.setResizable(false);
 
-		VBox root = new VBox();
-		splitPane.getItems().addAll(leftRegion, root);
+		VBox rightBox = new VBox();
+		splitPane.getItems().addAll(leftRegion, rightBox);
 //		root.setBackground(new Background(new BackgroundFill(Color.DARKGRAY, null, null)));
-		GridPane pane = new GridPane();
-//		pane.setBackground(new Background(new BackgroundFill(Color.RED, null, null)));
-		VBox.setMargin(pane, new Insets(10, 50, 0, 50));
-		root.getChildren().add(pane);
-		pane.setVgap(5);
+		GridPane topGridPane = new GridPane();
+//		topGridPane.setBackground(new Background(new BackgroundFill(Color.RED, null, null)));
+		VBox.setMargin(topGridPane, new Insets(10, 10, 10, 10));
+		rightBox.getChildren().add(topGridPane);
+		topGridPane.setVgap(5);
 
 		Label urlLabel = new Label("下载链接");
+		GridPane.setHalignment(urlLabel, HPos.RIGHT);
+		topGridPane.add(urlLabel, 0, 0);
+
 		urlTextField = new TextField();
 		urlTextField.setPrefWidth(350);
+		GridPane.setHalignment(urlTextField, HPos.LEFT);
+		topGridPane.add(urlTextField, 1, 0);
+
 		Label dirLabel = new Label("保存路径");
+		GridPane.setHalignment(dirLabel, HPos.RIGHT);
+		topGridPane.add(dirLabel, 0, 1);
 
 		dirTextField = new TextField();
 		dirTextField.setPrefWidth(310);
 		dirTextField.setTooltip(new Tooltip("双击、或按Enter键选择目录"));
+		topGridPane.add(dirTextField, 1, 1);
+
 		downloadButton = new Button("下载");
-		downloadButton.setPrefWidth(40);
-		HBox dirHBox = new HBox(dirTextField, downloadButton);
+		downloadButton.setPrefHeight(60);
+		downloadButton.setPrefWidth(60);
+		GridPane.setMargin(downloadButton, new Insets(0, 0, 0, 10));
+		topGridPane.add(downloadButton, 2, 0, 1, 2);
+
 		initEventHandler();
+		initTableView();
+		rightBox.getChildren().add(tableView);
 
-		GridPane.setHalignment(urlLabel, HPos.RIGHT);
-		pane.add(urlLabel, 0, 0);
-		GridPane.setHalignment(urlTextField, HPos.LEFT);
-		pane.add(urlTextField, 1, 0);
+		primaryStage.setScene(scene);
+		primaryStage.show();
+	}
 
-		GridPane.setHalignment(dirLabel, HPos.RIGHT);
-		pane.add(dirLabel, 0, 1);
-		pane.add(dirHBox, 1, 1);
-
+	private void initTableView() {
+		// https://blog.csdn.net/servermanage/article/details/102317726
+		// https://blog.csdn.net/MrChung2016/article/details/71774496
+		// https://docs.oracle.com/javafx/2/ui_controls/table-view.htm#CJABIEED
+		// http://www.javafxchina.net/blog/2015/04/doc03_tableview/
 		tableView = new TableView<EXTINF>();
+//		GridPane.setHgrow(tableView, Priority.ALWAYS);
+		tableView.setEditable(true);
+		// 自动拉伸列，是所有的列占满整个表格
+		tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 		Label label = new Label("快来下载吧!!!");
 		label.setFont(new Font(30));
 		tableView.setPlaceholder(label);
-		//自动拉伸列，是所有的列占满整个表格
-		tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 		TableViewSelectionModel<EXTINF> selectionModel = tableView.getSelectionModel();
 		// set selection mode to only 1 row
 //		selectionModel.setSelectionMode(SelectionMode.SINGLE);
@@ -119,56 +136,117 @@ public class MainView extends Application {
 //		selectionModel.clearSelection();
 
 		TableColumn<EXTINF, String> indexColumn = new TableColumn<EXTINF, String>("#");
-		indexColumn.setSortable(true);
-		indexColumn.setCellFactory((col) -> {
-			TableCell<EXTINF, String> cell = new TableCell<EXTINF, String>() {
-				@Override
-				public void updateItem(String item, boolean empty) {
-					super.updateItem(item, empty);
-					this.setText(null);
-					this.setGraphic(null);
+		indexColumn.setSortNode(null);
+		indexColumn.setPrefWidth(30);
+		indexColumn.setMinWidth(30);
+		indexColumn.setMaxWidth(30);
+		indexColumn.setResizable(false);
+		indexColumn.setSortable(false);
+		indexColumn.setCellFactory(new Callback<TableColumn<EXTINF, String>, TableCell<EXTINF, String>>() {
 
-					if (!empty) {
-						int rowIndex = this.getIndex() + 1;
-						this.setText(String.valueOf(rowIndex));
-					}
-				}
-			};
-			return cell;
-		});
-		TableColumn<EXTINF, String> nameColumn = new TableColumn<EXTINF, String>("名称");
-		TableColumn<EXTINF, String> progressColumn = new TableColumn<EXTINF, String>("已完成");
-		TableColumn<EXTINF, String> dirColumn = new TableColumn<EXTINF, String>("保存路径");
-		TableColumn<EXTINF, CheckBox> mergeColumn = new TableColumn<EXTINF, CheckBox>("合并");
-		mergeColumn.setSortable(false);
-		mergeColumn.setPrefWidth(28);
-		mergeColumn.setMaxWidth(28);
-		mergeColumn.setCellFactory(new Callback<TableColumn<EXTINF, CheckBox>, TableCell<EXTINF, CheckBox>>() {
-			
 			@Override
-			public TableCell<EXTINF, CheckBox> call(TableColumn<EXTINF, CheckBox> param) {
-				CheckBoxTableCell<EXTINF, CheckBox> checkBoxTableCell = new CheckBoxTableCell<EXTINF, CheckBox>();
-				return checkBoxTableCell;
+			public TableCell<EXTINF, String> call(TableColumn<EXTINF, String> param) {
+				TableCell<EXTINF, String> tableCell = new TableCell<EXTINF, String>() {
+					@Override
+					protected void updateItem(String item, boolean empty) {
+						super.updateItem(item, empty);
+						this.setText(null);
+						this.setGraphic(null);
+
+						if (!empty) {
+							int rowIndex = this.getIndex() + 1;
+							this.setText(String.valueOf(rowIndex));
+//							System.out.println("index:" + getIndex());
+						}
+					}
+				};
+				return tableCell;
 			}
 		});
+
+		TableColumn<EXTINF, String> nameColumn = new TableColumn<EXTINF, String>("名称");
+		nameColumn.setResizable(true);
+		nameColumn.setMinWidth(40);
+
+		TableColumn<EXTINF, ProgressBarBox> progressColumn = new TableColumn<EXTINF, ProgressBarBox>("已完成");
+		progressColumn.setPrefWidth(200);
+		progressColumn.setMinWidth(200);
+		progressColumn.setMaxWidth(200);
+		progressColumn.setCellValueFactory(new PropertyValueFactory<EXTINF, ProgressBarBox>("progressTableCell"));
+
+		TableColumn<EXTINF, String> dirColumn = new TableColumn<EXTINF, String>("保存路径");
+		dirColumn.setResizable(true);
+		dirColumn.setMinWidth(40);
+
+		TableColumn<EXTINF, CheckBox> mergeColumn = new TableColumn<EXTINF, CheckBox>("合并");
+		mergeColumn.setSortable(false);
+		mergeColumn.setPrefWidth(30);
+		mergeColumn.setMinWidth(30);
+		mergeColumn.setMaxWidth(30);
+		mergeColumn.setStyle("-fx-alignment:center;");
+		mergeColumn.setCellValueFactory(new PropertyValueFactory<EXTINF, CheckBox>("mergeCheckBox"));
+		// 方式一最简单
+//		Callback<TableColumn<EXTINF, Boolean>, TableCell<EXTINF, Boolean>> mergeCallback = CheckBoxTableCell
+//				.forTableColumn(mergeColumn);
+//		mergeColumn.setCellFactory(mergeCallback);
+//		TableCell<EXTINF, Boolean> mergeTableCell = mergeCallback.call(mergeColumn);
+//		mergeTableCell.setItem(false);
+		// 方式二
+//		List<CheckBoxTableCell<EXTINF, CheckBox>> mergeTableCells = new ArrayList<CheckBoxTableCell<EXTINF, CheckBox>>();
+//		Callback<TableColumn<EXTINF, CheckBox>, TableCell<EXTINF, CheckBox>> mergeCallback = new Callback<TableColumn<EXTINF, CheckBox>, TableCell<EXTINF, CheckBox>>() {
+//
+//			@Override
+//			public TableCell<EXTINF, CheckBox> call(TableColumn<EXTINF, CheckBox> param) {
+//				CheckBoxTableCell<EXTINF, CheckBox> mergeTableCell = new CheckBoxTableCell<EXTINF, CheckBox>();
+//				mergeTableCells.add(mergeTableCell);
+////				tableView.setEditable(true);
+////				BooleanBinding not = Bindings.not(tableView.editableProperty().and(mergeColumn.editableProperty())
+////						.and(mergeTableCell.editableProperty()));
+////				System.out.println(tableView.editableProperty() + "," + mergeColumn.editableProperty() + ","
+////						+ mergeTableCell.editableProperty());
+//				return mergeTableCell;
+//			}
+//		};
+//		mergeColumn.setCellFactory(mergeCallback);
+
+		// 方式三
+//		Callback<CellDataFeatures<EXTINF, CheckBox>, ObservableValue<CheckBox>> mergeCallback = new Callback<TableColumn.CellDataFeatures<EXTINF, CheckBox>, ObservableValue<CheckBox>>() {
+//
+//			@Override
+//			public ObservableValue<CheckBox> call(CellDataFeatures<EXTINF, CheckBox> param) {
+//				CheckBoxProperty checkBoxProperty = new CheckBoxProperty();
+//				return checkBoxProperty;
+//			}
+//		};
+//		mergeColumn.setCellValueFactory(mergeCallback);
+
 		TableColumn<EXTINF, Button> optColumn = new TableColumn<EXTINF, Button>("操作");
 		optColumn.setSortable(false);
+		optColumn.setPrefWidth(46);
+		optColumn.setMinWidth(46);
+		optColumn.setMaxWidth(46);
 //		optColumn.setCellFactory((callback) -> {
 //			ButtonTableCell cell = new ButtonTableCell();
 //			return cell;
 //		});
-		optColumn.setCellFactory(new Callback<TableColumn<EXTINF, Button>, TableCell<EXTINF, Button>>() {
+//		optColumn.setCellFactory(new Callback<TableColumn<EXTINF, Button>, TableCell<EXTINF, Button>>() {
+//			private int index = 0;
+//
+//			@Override
+//			public TableCell<EXTINF, Button> call(TableColumn<EXTINF, Button> param) {
+//				ButtonTableCell tableCell = new ButtonTableCell(tableView, optColumn, "合并" + index);
+//				index++;
+////				tableCell.addCell(mergeTableCells);
+//				return tableCell;
+//			}
+//		});
+		optColumn.setCellValueFactory(new PropertyValueFactory<EXTINF, Button>("mergeButton"));
 
-			@Override
-			public TableCell<EXTINF, Button> call(TableColumn<EXTINF, Button> param) {
-				ButtonTableCell tableCell = new ButtonTableCell("合并");
-				return tableCell;
-			}
-		});
 		dirColumn.setCellValueFactory(new PropertyValueFactory<EXTINF, String>("dir"));
-//		
-		// https://blog.csdn.net/servermanage/article/details/102317726
-		// https://blog.csdn.net/MrChung2016/article/details/71774496
+		ContextMenu contextMenu = new ContextMenu();
+		MenuItem menuItem = new MenuItem("文件夹");
+		contextMenu.getItems().add(menuItem);
+		dirColumn.setContextMenu(contextMenu);
 
 		tableView.getColumns().addAll(indexColumn, nameColumn, progressColumn, dirColumn, mergeColumn, optColumn);
 		ArrayList<EXTINF> arrayList = new ArrayList<EXTINF>();
@@ -180,31 +258,6 @@ public class MainView extends Application {
 
 		ObservableList<EXTINF> observableArrayList = FXCollections.observableArrayList(arrayList);
 		tableView.setItems(observableArrayList);
-		pane.add(tableView, 0, 2, 2, 1);
-
-		primaryStage.setScene(scene);
-		primaryStage.show();
-
-	}
-
-	public void showStuTable(ObservableList<EXTINF> stuLists) {
-		TableColumn<EXTINF, String> idCol = new TableColumn<EXTINF, String>();
-		idCol.setCellFactory((col) -> {
-			TableCell<EXTINF, String> cell = new TableCell<EXTINF, String>() {
-				@Override
-				public void updateItem(String item, boolean empty) {
-					super.updateItem(item, empty);
-					this.setText(null);
-					this.setGraphic(null);
-
-					if (!empty) {
-						int rowIndex = this.getIndex() + 1;
-						this.setText(String.valueOf(rowIndex));
-					}
-				}
-			};
-			return cell;
-		});
 	}
 
 	private void initEventHandler() {
