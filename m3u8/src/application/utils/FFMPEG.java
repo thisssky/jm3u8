@@ -60,8 +60,8 @@ public class FFMPEG {
 
 				}
 			};
-			new Thread(target).start();
-			new Thread(target2).start();
+//			new Thread(target).start();
+//			new Thread(target2).start();
 			int exitcode = videoProcess.waitFor();
 			if (exitcode == 1) {
 				return false;
@@ -91,8 +91,6 @@ public class FFMPEG {
 		return command;
 	}
 
-	
-	
 	@Deprecated
 	private static String tsfile(String dir) {
 
@@ -145,12 +143,11 @@ public class FFMPEG {
 
 	public static void merge(String dir) {
 //		String tsfilepath = tsfile(dir);
-		List<String> command = getFfmpegCommand(dir+File.separator+"tsFile.txt", dir + File.separator + "out.mp4");
+		List<String> command = getFfmpegCommand(dir + File.separator + "tsFile.txt", dir + File.separator + "out.mp4");
 		process(command);
 	}
 
 	public static void main(String[] args) {
-//		merge("C:\\Users\\kyh\\Desktop\\m3u8\\sg02");
-		tsfile("C:\\Users\\kyh\\Desktop\\m3u8\\xxx-");
+		merge("C:\\Users\\kyh\\Desktop\\m3u8\\xxx\\43");
 	}
 }

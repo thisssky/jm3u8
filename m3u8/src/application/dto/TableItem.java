@@ -88,7 +88,15 @@ public class TableItem {
 
 				}
 				// 合并操作
-				FFMPEG.merge(dir);
+				Runnable runnable = new Runnable() {
+
+					@Override
+					public void run() {
+						FFMPEG.merge(dir);
+
+					}
+				};
+				new Thread(runnable).start();
 				mergeCheckBox.setIndeterminate(false);
 				mergeCheckBox.setSelected(true);
 

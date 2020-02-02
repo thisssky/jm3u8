@@ -51,7 +51,10 @@ public class DownloadRunnable implements Runnable {
 						fileOutputStream.write(bytes, 0, length);
 					}
 					int incrementAndGet = atomicInteger.incrementAndGet();
-					System.out.println(Thread.currentThread().getName() + ":" + incrementAndGet);
+					if (count == incrementAndGet) {
+						System.out.println("break:" + Thread.currentThread().getName() + ":" + incrementAndGet);
+						break;
+					}
 				}
 			}
 		} catch (MalformedURLException e) {
@@ -60,6 +63,7 @@ public class DownloadRunnable implements Runnable {
 //			System.err.println("插入队列中:" + urlpath);
 			queue.offer(extinf);
 		} finally {
+			System.out.println("finally:" + Thread.currentThread().getName() + ":");
 			try {
 				fileOutputStream.close();
 			} catch (IOException e) {
