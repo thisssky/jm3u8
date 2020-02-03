@@ -1,25 +1,22 @@
 package application;
 
 import java.io.File;
-import java.util.ArrayList;
 
 import application.component.ProgressBarBox;
-import application.dto.EXTINF;
 import application.dto.TableItem;
 import application.utils.CommonUtility;
 import javafx.application.Application;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -27,7 +24,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.cell.MapValueFactory;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
@@ -122,7 +118,7 @@ public class MainView extends Application {
 		// https://docs.oracle.com/javafx/2/ui_controls/table-view.htm#CJABIEED
 		// http://www.javafxchina.net/blog/2015/04/doc03_tableview/
 		tableView = new TableView<TableItem>();
-//		GridPane.setHgrow(tableView, Priority.ALWAYS);
+		tableView.setTableMenuButtonVisible(true);
 		tableView.setEditable(true);
 		// 自动拉伸列，是所有的列占满整个表格
 		tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -212,10 +208,6 @@ public class MainView extends Application {
 		optColumn.setCellValueFactory(new PropertyValueFactory<TableItem, Button>("mergeButton"));
 
 		dirColumn.setCellValueFactory(new PropertyValueFactory<TableItem, String>("dir"));
-		ContextMenu contextMenu = new ContextMenu();
-		MenuItem menuItem = new MenuItem("文件夹");
-		contextMenu.getItems().add(menuItem);
-		dirColumn.setContextMenu(contextMenu);
 
 		tableView.getColumns().addAll(indexColumn, nameColumn, progressColumn, dirColumn, mergeColumn, optColumn);
 
@@ -269,30 +261,30 @@ public class MainView extends Application {
 
 			@Override
 			public void handle(ActionEvent actionEvent) {
+//				urlTextField.setText("https://youku.cdn4-okzy.com/20191126/2980_2373c5f5/1000k/hls/index.m3u8");
+//				dirTextField.setText("C:\\Users\\kyh\\Desktop\\m3u8\\qyn");
 				String downloadUrl = urlTextField.getText();
 				String dir = dirTextField.getText();
 				Image image = CommonUtility.getImage("title.png");
-//				if (null == downloadUrl || "".equals(downloadUrl.trim())) {
-//					Alert urlAlert = new Alert(AlertType.ERROR);
-//					Stage window = (Stage) urlAlert.getDialogPane().getScene().getWindow();
-//					window.getIcons().add(image);
-//					urlAlert.setHeaderText("下载链接不能为空!");
-//					urlAlert.setTitle("提示");
-//					urlAlert.show();
-//				} else if (null == dir || "".equals(dir.trim())) {
-//					Alert urlAlert = new Alert(AlertType.ERROR);
-//					Stage window = (Stage) urlAlert.getDialogPane().getScene().getWindow();
-//					window.getIcons().add(image);
-//					urlAlert.setHeaderText("保存路径不能为空!");
-//					urlAlert.setTitle("提示");
-//					urlAlert.show();
-//				}
-
-				TableItem tableItem = new TableItem(downloadUrl, dir);
-				tableView.getItems().add(tableItem);
-				tableItem.getProgressBarBox().download();
-				if (null != downloadUrl && !downloadUrl.isEmpty() && null != dir && !dir.isEmpty()) {
+				if (null == downloadUrl || "".equals(downloadUrl.trim())) {
+					Alert urlAlert = new Alert(AlertType.ERROR);
+					Stage window = (Stage) urlAlert.getDialogPane().getScene().getWindow();
+					window.getIcons().add(image);
+					urlAlert.setHeaderText("下载链接不能为空!");
+					urlAlert.setTitle("提示");
+					urlAlert.show();
+				} else if (null == dir || "".equals(dir.trim())) {
+					Alert urlAlert = new Alert(AlertType.ERROR);
+					Stage window = (Stage) urlAlert.getDialogPane().getScene().getWindow();
+					window.getIcons().add(image);
+					urlAlert.setHeaderText("保存路径不能为空!");
+					urlAlert.setTitle("提示");
+					urlAlert.show();
+				} else if (null != downloadUrl && !downloadUrl.isEmpty() && null != dir && !dir.isEmpty()) {
 					// 启动下载
+					TableItem tableItem = new TableItem(downloadUrl, dir);
+					tableView.getItems().add(tableItem);
+					tableItem.getProgressBarBox().download();
 				}
 			}
 		});

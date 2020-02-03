@@ -9,9 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 

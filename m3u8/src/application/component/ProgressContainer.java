@@ -12,7 +12,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import application.dto.EXTINF;
-import application.runnable.DownloadRunnable;
 import application.utils.CommonUtility;
 import application.utils.FFMPEG;
 import application.utils.M3U8;
@@ -35,6 +34,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
+@Deprecated
 public class ProgressContainer {
 
 	private Label label;
@@ -148,7 +148,7 @@ public class ProgressContainer {
 
 						// 下载视频片段，分成多个线程下载
 						for (int i = 0; i < num; i++) {
-							es.execute(new DownloadRunnable(dir, arrayBlockingQueue, atomicInteger, size));
+//							es.execute(new QueueRunnable(dir, arrayBlockingQueue, atomicInteger, size));
 						}
 						//
 						TimerTask timerTask = new TimerTask() {

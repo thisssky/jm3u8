@@ -2,6 +2,7 @@ package application.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
@@ -98,18 +99,19 @@ public class M3U8 {
 			last = list.get(list.size() - 1);
 		}
 
+		// 验证文件夹
 		File dirFile = new File(dir);
 		if (!dirFile.exists()) {
 			dirFile.mkdirs();
 		}
+		// 删除已有文件
 		String filePath = dir + File.separator + "tsFile.txt";
 		File file = new File(filePath);
 		file.delete();
 		// 处理ts序列
 		ArrayList<EXTINF> ts = new ArrayList<EXTINF>();
-		EXTINF extinf;
+		EXTINF extinf = null;
 		int index = 0;
-		file.delete();
 		for (String data : list) {
 			String prefix = m3u8.substring(0, m3u8.lastIndexOf("/") + 1);
 			if (data.endsWith(".ts")) {
@@ -118,31 +120,55 @@ public class M3U8 {
 					;
 					extinf.setTs(prefix + data.substring(1));
 					extinf.setTsName(data.substring(data.lastIndexOf("/") + 1));
-//					extinf = new EXTINF(index, prefix + data.substring(1), data.substring(data.lastIndexOf("/") + 1));
 					ts.add(extinf);
 				} else {
 					extinf = new EXTINF(m3u8, dir, index);
 					;
 					extinf.setTs(prefix + data);
 					extinf.setTsName(data.substring(data.lastIndexOf("/") + 1));
-//					extinf = new EXTINF(index, prefix + data, data.substring(data.lastIndexOf("/") + 1));
 					ts.add(extinf);
 				}
 				index++;
 
-				// 写下ts文件
-				StringBuilder sb = new StringBuilder();
-				sb.append("file ");
-				sb.append("'");
-				sb.append(dir + File.separator + extinf.getIndex() + "-" + extinf.getTsName());
-				sb.append("'");
-				sb.append("\r\n");
-				tsFile(filePath, sb.toString());
 			}
 		}
+		// 写下ts文件
+		writeTS(ts);
 		return ts;
 	}
 
+	private static String writeTS(ArrayList<EXTINF> ts) {
+		StringBuilder tsBuilder = new StringBuilder();
+		for (EXTINF extinf : ts) {
+			tsBuilder.append("file ");
+			tsBuilder.append("'");
+			tsBuilder.append(extinf.getDir() + File.separator + extinf.getIndex() + "-" + extinf.getTsName());
+			tsBuilder.append("'");
+			tsBuilder.append("\r\n");
+		}
+		String filePath = ts.get(0).getDir() + File.separator + "tsFile.txt";
+
+//		System.out.println("tsFile:\n");
+//		System.out.println(sb.toString());
+
+		File tsfile = new File(filePath);
+		FileWriter fileWriter = null;
+		try {
+			fileWriter = new FileWriter(tsfile);
+			fileWriter.write(tsBuilder.toString());
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				fileWriter.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return filePath;
+	}
+
+	@Deprecated
 	public static void tsFile(String fileName, String content) {
 		RandomAccessFile randomFile = null;
 		try {

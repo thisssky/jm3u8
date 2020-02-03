@@ -3,18 +3,9 @@ package application.component;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import application.dto.EXTINF;
-import application.runnable.DownloadRunnable;
-import application.utils.JAXBUtils;
-import application.utils.M3U8;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -33,18 +24,8 @@ public class ProgressBarBox extends Pane {
 	private ProgressBar progressBar;
 	private Label progressBarTextLabel;
 	private Service<Integer> progressBarService;
-	private Service<String> progressBarTextService;
-	private AtomicInteger atomicInteger = new AtomicInteger(0);
-	private List<EXTINF> list;
-	private String m3u8;
-	private String dir;
-	private int num = 4;
-	private Timer timer = new Timer();
-	private ExecutorService es = Executors.newFixedThreadPool(num);
 
 	public ProgressBarBox(String m3u8, String dir) {
-		this.m3u8 = m3u8;
-		this.dir = dir;
 		progressBar = new ProgressBar();
 		progressBar.focusTraversableProperty().get();
 		progressBar.setPrefWidth(200);
@@ -61,8 +42,6 @@ public class ProgressBarBox extends Pane {
 		gridPane = new GridPane();
 		gridPane.add(progressBar, 0, 0);
 
-//		GridPane.setHalignment(progressBarTextLabel, HPos.CENTER);
-//		GridPane.setFillHeight(progressBarTextLabel, true);
 		gridPane.add(progressBarTextLabel, 0, 0);
 
 		getChildren().add(gridPane);
@@ -78,6 +57,26 @@ public class ProgressBarBox extends Pane {
 //
 //			}
 //		});
+
+		progressBarService = new Service<Integer>() {
+
+			@Override
+			protected Task<Integer> createTask() {
+				ProgressBarTask tasks = new ProgressBarTask(m3u8, dir);
+				return tasks;
+			};
+		};
+		progressBarService.progressProperty().addListener(new ChangeListener<Number>() {
+			@Override
+			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+//				System.out.println("ob:" + observable.getValue().doubleValue() + ",old:" + oldValue.doubleValue()
+//						+ ",new:" + newValue.doubleValue());
+				progressBar.setProgress(newValue.doubleValue());
+				// 去更新label值
+				progressBarTextLabel.setText(String.format("%.2f%%", newValue.doubleValue() * 100));
+			}
+		});
+
 	}
 
 	public ContextMenu dirMenuItem() {
@@ -99,80 +98,7 @@ public class ProgressBarBox extends Pane {
 	}
 
 	public void download() {
-		progressBarService = new Service<Integer>() {
-
-			@Override
-			protected Task<Integer> createTask() {
-				Task<Integer> task = new Task<Integer>() {
-					@Override
-					protected Integer call() throws Exception {
-
-						list = M3U8.ts(m3u8, dir);
-						JAXBUtils.create(dir, list);
-						int size = list.size();
-						ArrayBlockingQueue<EXTINF> arrayBlockingQueue = new ArrayBlockingQueue<EXTINF>(size);
-						arrayBlockingQueue.addAll(list);
-						progressBarTextService.restart();
-
-						for (int i = 0; i < num; i++) {
-							es.execute(new DownloadRunnable(dir, arrayBlockingQueue, atomicInteger, size));
-						}
-
-						TimerTask timerTask = new TimerTask() {
-
-							@Override
-							public void run() {
-								int a = atomicInteger.get();
-
-								double p = (double) 100 * a / size;
-//								System.out.println("timerTask:" + a + "," + p);
-								updateProgress(p);
-							}
-						};
-						timer.scheduleAtFixedRate(timerTask, 0, 1000);
-
-						return null;
-					}
-
-					public void updateProgress(double x) {
-						updateProgress(x, 100);
-					}
-
-				};
-				return task;
-			};
-		};
-
-		progressBarTextService = new Service<String>() {
-
-			@Override
-			protected Task<String> createTask() {
-				Task<String> task = new Task<String>() {
-
-					@Override
-					protected String call() throws Exception {
-						TimerTask timerTask = new TimerTask() {
-
-							@Override
-							public void run() {
-								int a = atomicInteger.get();
-								double p = (double) 100 * a / list.size();
-								String f = String.format("%.2f%%", p);
-//								System.out.println("timerTask2:" + f);
-								updateTitle(f);
-							}
-						};
-						timer.scheduleAtFixedRate(timerTask, 0, 1000);
-						return null;
-					}
-				};
-				return task;
-			};
-		};
-
-		progressBar.progressProperty().bind(progressBarService.progressProperty());
-		progressBarService.restart();
-		progressBarTextLabel.textProperty().bind(progressBarTextService.titleProperty());
-
+		progressBarService.start();
 	}
+
 }

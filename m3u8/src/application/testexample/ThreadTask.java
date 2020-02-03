@@ -1,24 +1,19 @@
 package application.testexample;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
-import javafx.concurrent.Worker;
-import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 
 /**
  * @author stone
