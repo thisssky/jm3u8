@@ -176,7 +176,6 @@ public class MainView extends Application {
 		TableColumn<TableItem, String> dirColumn = new TableColumn<TableItem, String>("保存路径");
 		dirColumn.setResizable(true);
 		dirColumn.setMinWidth(40);
-		dirColumn.setCellValueFactory(new PropertyValueFactory<TableItem, String>("dir"));
 		dirColumn.setCellFactory(new Callback<TableColumn<TableItem, String>, TableCell<TableItem, String>>() {
 
 			@Override

@@ -37,4 +37,10 @@ public class DirTableCell extends TableCell<TableItem, String> {
 		});
 	}
 
+	@Override
+	protected void updateItem(String item, boolean empty) {
+		super.updateItem(item, empty);
+		this.setText(item);
+	}
+
 }
