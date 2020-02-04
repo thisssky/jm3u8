@@ -9,7 +9,10 @@ import java.io.InputStream;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
+import javafx.stage.Stage;
 
 public class CommonUtility {
 	public static final String IMAGE_PATH = "/image/";
@@ -64,5 +67,15 @@ public class CommonUtility {
 		InputStream resource = CommonUtility.class.getResourceAsStream(IMAGE_PATH + imageName);
 		Image image = new Image(resource);
 		return image;
+	}
+
+	public static void alert(String headerText) {
+		Alert urlAlert = new Alert(AlertType.ERROR);
+		Stage window = (Stage) urlAlert.getDialogPane().getScene().getWindow();
+		Image image = getImage("title.png");
+		window.getIcons().add(image);
+		urlAlert.setHeaderText(headerText);
+		urlAlert.setTitle("提示");
+		urlAlert.show();
 	}
 }

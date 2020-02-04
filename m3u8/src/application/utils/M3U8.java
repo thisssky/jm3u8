@@ -69,19 +69,58 @@ import application.dto.EXTINF;
 // https://www.jianshu.com/p/1b0adcc7b426
 public class M3U8 {
 
-	private boolean encrypt = false;
-	private String EXTM3U = "#EXTM3U";
-	private String KEY = "#EXT-X-KEY";
-	private String VERSION = "#EXT-X-VERSION";
-	private String TARGETDURATION = "#EXT-X-TARGETDURATION";
-	private String SEQUENCE = "#EXT-X-MEDIA-SEQUENCE";
-	private String EXTINF = "#EXTINF";
-	private static String ENDLIST = "#EXT-X-ENDLIST";
+	public static String EXTM3U = "#EXTM3U";
+	public static String KEY = "#EXT-X-KEY";
+	public static String VERSION = "#EXT-X-VERSION";
+	public static String TARGETDURATION = "#EXT-X-TARGETDURATION";
+	public static String SEQUENCE = "#EXT-X-MEDIA-SEQUENCE";
+	public static String EXTINF = "#EXTINF";
+	public static String ENDLIST = "#EXT-X-ENDLIST";
 
 	public static void main(String[] args) {
-		// https://www2.800-cdn.com/20200117/oEPSuMue/index.m3u8
-//		ts("C:\\Users\\kyh\\Desktop\\m3u8\\xxx-",
-//				"http://youku.cdn4-okzy.com/20191126/2980_2373c5f5/1000k/hls/index.m3u8");
+		String m3u8 = "https://cn6.7639616.com/hls/20191126/5732e6c5fd2ba9580797bbac42bc3afa/1574769508/index.m3u8";
+		String dir = "C:\\Users\\kyh\\Desktop\\m3u8\\qyn";
+		List<application.dto.EXTINF> ts = ts(m3u8, dir);
+		JAXBUtils.create(dir, ts);
+	}
+
+	public static void test() {
+//		https://cn7.7639616.com/hls/20191126/eebb68accf60bff8adffe64c7ac68219/1574769804/index.m3u8
+//		   /hls/20191126/eebb68accf60bff8adffe64c7ac68219/1574769804/film_00000.ts
+//https://cn7.7639616.com/hls/20191126/eebb68accf60bff8adffe64c7ac68219/1574769804/film_00001.ts
+
+//https://youku.cdn4-okzy.com/20191126/2980_2373c5f5/1000k/hls/index.m3u8
+//                                              9660a92c9d8000000.ts
+//https://youku.cdn4-okzy.com/20191126/2980_2373c5f5/1000k/hls/9660a92c9d8000000.ts
+
+		String m3u8 = "https://cn7.7639616.com/hls/20191126/eebb68accf60bff8adffe64c7ac68219/1574769804/index.m3u8";
+		System.out.println(m3u8);
+// https://cn7.7639616.com/hls/20191126/eebb68accf60bff8adffe64c7ac68219/1574769804
+		String m3u8Prefix = m3u8.substring(0, m3u8.lastIndexOf("/"));
+		System.out.println(m3u8Prefix);
+
+		String data = "film_00000.ts";
+		System.out.println(data);
+//https://cn7.7639616.com/hls/20191126/eebb68accf60bff8adffe64c7ac68219/1574769804/film_00000.ts
+
+		if (data.contains("/")) {
+			String rts = data.substring(data.lastIndexOf("/"));
+			System.out.println(rts);
+			String tsPrefix = data.substring(0, data.lastIndexOf("/"));
+			System.out.println(tsPrefix);
+			int containPrefix = m3u8Prefix.indexOf(tsPrefix);
+			if (containPrefix > -1) {
+				data = m3u8Prefix + rts;
+			} else {
+				if (!tsPrefix.startsWith("/")) {
+					tsPrefix = "/" + tsPrefix;
+				}
+				data = m3u8Prefix + tsPrefix + rts;
+			}
+		} else {
+			data = m3u8Prefix + "/" + data;
+		}
+
 	}
 
 	public static List<EXTINF> ts(String m3u8, String dir) {
@@ -113,23 +152,29 @@ public class M3U8 {
 		EXTINF extinf = null;
 		int index = 0;
 		for (String data : list) {
-			String prefix = m3u8.substring(0, m3u8.lastIndexOf("/") + 1);
+			String m3u8Prefix = m3u8.substring(0, m3u8.lastIndexOf("/"));
 			if (data.endsWith(".ts")) {
-				if (data.startsWith("/")) {
-					extinf = new EXTINF(m3u8, dir, index);
-					;
-					extinf.setTs(prefix + data.substring(1));
-					extinf.setTsName(data.substring(data.lastIndexOf("/") + 1));
-					ts.add(extinf);
+				if (data.contains("/")) {
+					String rts = data.substring(data.lastIndexOf("/"));
+					String tsPrefix = data.substring(0, data.lastIndexOf("/"));
+					int containPrefix = m3u8Prefix.indexOf(tsPrefix);
+					if (containPrefix > -1) {
+						data = m3u8Prefix + rts;
+					} else {
+						if (!tsPrefix.startsWith("/")) {
+							tsPrefix = "/" + tsPrefix;
+						}
+						data = m3u8Prefix + tsPrefix + rts;
+					}
 				} else {
-					extinf = new EXTINF(m3u8, dir, index);
-					;
-					extinf.setTs(prefix + data);
-					extinf.setTsName(data.substring(data.lastIndexOf("/") + 1));
-					ts.add(extinf);
+					data = m3u8Prefix + "/" + data;
 				}
-				index++;
+				extinf = new EXTINF(m3u8, dir, index);
+				extinf.setTs(data);
+				extinf.setTsName(data.substring(data.lastIndexOf("/") + 1));
+				ts.add(extinf);
 
+				index++;
 			}
 		}
 		// 写下ts文件
@@ -147,9 +192,6 @@ public class M3U8 {
 			tsBuilder.append("\r\n");
 		}
 		String filePath = ts.get(0).getDir() + File.separator + "tsFile.txt";
-
-//		System.out.println("tsFile:\n");
-//		System.out.println(sb.toString());
 
 		File tsfile = new File(filePath);
 		FileWriter fileWriter = null;

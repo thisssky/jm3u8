@@ -2,6 +2,7 @@ package application;
 
 import java.io.File;
 
+import application.component.DirTableCell;
 import application.component.ProgressBarBox;
 import application.dto.TableItem;
 import application.utils.CommonUtility;
@@ -118,6 +119,7 @@ public class MainView extends Application {
 		// https://docs.oracle.com/javafx/2/ui_controls/table-view.htm#CJABIEED
 		// http://www.javafxchina.net/blog/2015/04/doc03_tableview/
 		tableView = new TableView<TableItem>();
+		// 可自由设置显示列
 		tableView.setTableMenuButtonVisible(true);
 		tableView.setEditable(true);
 		// 自动拉伸列，是所有的列占满整个表格
@@ -125,7 +127,17 @@ public class MainView extends Application {
 		Label label = new Label("快来下载吧!!!");
 		label.setFont(new Font(30));
 		tableView.setPlaceholder(label);
+//		tableView.setRowFactory(new Callback<TableView<TableItem>, TableRow<TableItem>>() {
+//
+//			@Override
+//			public TableRow<TableItem> call(TableView<TableItem> param) {
+//				ExtTableRow extTableRow = new ExtTableRow();
+//				return extTableRow;
+//			}
+//		});
+//		Callback<TableView<TableItem>, TableRow<TableItem>> rowFactory = tableView.getRowFactory();
 		TableViewSelectionModel<TableItem> selectionModel = tableView.getSelectionModel();
+//		selectionModel.setSelectionMode(SelectionMode.MULTIPLE);
 		// set selection mode to only 1 row
 //		selectionModel.setSelectionMode(SelectionMode.SINGLE);
 		// set selection mode to multiple rows
@@ -154,10 +166,22 @@ public class MainView extends Application {
 						if (!empty) {
 							int rowIndex = this.getIndex() + 1;
 							this.setText(String.valueOf(rowIndex));
-//							System.out.println("index:" + getIndex());
 						}
 					}
 				};
+				return tableCell;
+			}
+		});
+
+		TableColumn<TableItem, String> dirColumn = new TableColumn<TableItem, String>("保存路径");
+		dirColumn.setResizable(true);
+		dirColumn.setMinWidth(40);
+		dirColumn.setCellValueFactory(new PropertyValueFactory<TableItem, String>("dir"));
+		dirColumn.setCellFactory(new Callback<TableColumn<TableItem, String>, TableCell<TableItem, String>>() {
+
+			@Override
+			public TableCell<TableItem, String> call(TableColumn<TableItem, String> param) {
+				DirTableCell tableCell = new DirTableCell();
 				return tableCell;
 			}
 		});
@@ -168,15 +192,6 @@ public class MainView extends Application {
 		progressColumn.setMaxWidth(208);
 		progressColumn.setCellValueFactory(new PropertyValueFactory<TableItem, ProgressBarBox>("progressBarBox"));
 
-		TableColumn<TableItem, String> nameColumn = new TableColumn<TableItem, String>("名称");
-		nameColumn.setResizable(true);
-		nameColumn.setMinWidth(40);
-
-		TableColumn<TableItem, String> dirColumn = new TableColumn<TableItem, String>("保存路径");
-		dirColumn.setResizable(true);
-		dirColumn.setMinWidth(40);
-		dirColumn.setCellValueFactory(new PropertyValueFactory<TableItem, String>("dir"));
-
 		TableColumn<TableItem, CheckBox> mergeColumn = new TableColumn<TableItem, CheckBox>("合并");
 		mergeColumn.setSortable(false);
 		mergeColumn.setPrefWidth(30);
@@ -185,11 +200,11 @@ public class MainView extends Application {
 		mergeColumn.setStyle("-fx-alignment:center;");
 		mergeColumn.setCellValueFactory(new PropertyValueFactory<TableItem, CheckBox>("mergeCheckBox"));
 
-		TableColumn<TableItem, Button> optColumn = new TableColumn<TableItem, Button>("操作");
-		optColumn.setSortable(false);
-		optColumn.setPrefWidth(46);
-		optColumn.setMinWidth(46);
-		optColumn.setMaxWidth(46);
+		TableColumn<TableItem, Button> mergeOptColumn = new TableColumn<TableItem, Button>("操作");
+		mergeOptColumn.setSortable(false);
+		mergeOptColumn.setPrefWidth(46);
+		mergeOptColumn.setMinWidth(46);
+		mergeOptColumn.setMaxWidth(46);
 //		optColumn.setCellFactory((callback) -> {
 //			ButtonTableCell cell = new ButtonTableCell();
 //			return cell;
@@ -205,11 +220,11 @@ public class MainView extends Application {
 //				return tableCell;
 //			}
 //		});
-		optColumn.setCellValueFactory(new PropertyValueFactory<TableItem, Button>("mergeButton"));
+		mergeOptColumn.setCellValueFactory(new PropertyValueFactory<TableItem, Button>("mergeButton"));
 
 		dirColumn.setCellValueFactory(new PropertyValueFactory<TableItem, String>("dir"));
 
-		tableView.getColumns().addAll(indexColumn, nameColumn, progressColumn, dirColumn, mergeColumn, optColumn);
+		tableView.getColumns().addAll(indexColumn, progressColumn, dirColumn, mergeColumn, mergeOptColumn);
 
 //		new MapValueFactory<T>(key);
 
@@ -261,8 +276,6 @@ public class MainView extends Application {
 
 			@Override
 			public void handle(ActionEvent actionEvent) {
-//				urlTextField.setText("https://youku.cdn4-okzy.com/20191126/2980_2373c5f5/1000k/hls/index.m3u8");
-//				dirTextField.setText("C:\\Users\\kyh\\Desktop\\m3u8\\qyn");
 				String downloadUrl = urlTextField.getText();
 				String dir = dirTextField.getText();
 				Image image = CommonUtility.getImage("title.png");
