@@ -18,7 +18,6 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -30,8 +29,11 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -41,6 +43,8 @@ import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 
 public class MainView extends Application {
+	private int width = 800;
+	private int height = 500;
 	private Stage primaryStage;
 	private TextField urlTextField;
 	private TextField dirTextField;
@@ -65,37 +69,40 @@ public class MainView extends Application {
 		ObservableList<javafx.scene.image.Image> icons = primaryStage.getIcons();
 		icons.add(CommonUtility.getImage("title.png"));
 
-		Region leftRegion = new Region();
-		SplitPane splitPane = new SplitPane();
-		splitPane.setDividerPositions(0.2, 0.8);
+		Pane leftRegion = new Pane();
+		leftRegion.setPrefWidth(width * 0.2);
+		leftRegion.setMinWidth(width * 0.2);
+		leftRegion.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, null, null)));
 
-		Scene scene = new Scene(splitPane, 800, 500, Color.WHITE);
-//		primaryStage.setResizable(false);
+		BorderPane rightBox = new BorderPane();
+		rightBox.setPrefWidth(width * 0.8);
+		rightBox.setMinWidth(width * 0.8);
+		BorderPane root = new BorderPane();
 
-		VBox rightBox = new VBox();
-		splitPane.getItems().addAll(leftRegion, rightBox);
-//		root.setBackground(new Background(new BackgroundFill(Color.DARKGRAY, null, null)));
 		GridPane topGridPane = new GridPane();
-//		topGridPane.setBackground(new Background(new BackgroundFill(Color.RED, null, null)));
-		VBox.setMargin(topGridPane, new Insets(10, 10, 10, 10));
-		rightBox.getChildren().add(topGridPane);
 		topGridPane.setVgap(5);
+//		topGridPane.setBackground(new Background(new BackgroundFill(Color.RED, null, null)));
+		rightBox.setTop(topGridPane);
 
 		Label urlLabel = new Label("下载链接");
 		GridPane.setHalignment(urlLabel, HPos.RIGHT);
+		GridPane.setMargin(urlLabel, new Insets(5, 5, 5, 5));
 		topGridPane.add(urlLabel, 0, 0);
 
 		urlTextField = new TextField();
 		urlTextField.setPrefWidth(350);
+		GridPane.setMargin(urlTextField, new Insets(5, 5, 5, 0));
 		GridPane.setHalignment(urlTextField, HPos.LEFT);
 		topGridPane.add(urlTextField, 1, 0);
 
 		Label dirLabel = new Label("保存路径");
+		GridPane.setMargin(dirLabel, new Insets(0, 5, 5, 5));
 		GridPane.setHalignment(dirLabel, HPos.RIGHT);
 		topGridPane.add(dirLabel, 0, 1);
 
 		dirTextField = new TextField();
 		dirTextField.setPrefWidth(310);
+		GridPane.setMargin(dirTextField, new Insets(0, 5, 5, 0));
 		dirTextField.setTooltip(new Tooltip("双击、或按Enter键选择目录"));
 		topGridPane.add(dirTextField, 1, 1);
 
@@ -107,8 +114,12 @@ public class MainView extends Application {
 
 		setOnAction();
 		initTableView();
-		rightBox.getChildren().add(tableView);
+		rightBox.setCenter(tableView);
 
+		Scene scene = new Scene(root, width, height, Color.WHITE);
+		root.setLeft(leftRegion);
+		root.setCenter(rightBox);
+//		root.setBackground(new Background(new BackgroundFill(Color.DARKGRAY, null, null)));
 		primaryStage.setScene(scene);
 		primaryStage.show();
 	}
@@ -120,13 +131,14 @@ public class MainView extends Application {
 		// http://www.javafxchina.net/blog/2015/04/doc03_tableview/
 		tableView = new TableView<TableItem>();
 		// 可自由设置显示列
-		tableView.setTableMenuButtonVisible(true);
+//		tableView.setTableMenuButtonVisible(true);
 		tableView.setEditable(true);
 		// 自动拉伸列，是所有的列占满整个表格
 		tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 		Label label = new Label("快来下载吧!!!");
 		label.setFont(new Font(30));
 		tableView.setPlaceholder(label);
+
 //		tableView.setRowFactory(new Callback<TableView<TableItem>, TableRow<TableItem>>() {
 //
 //			@Override
@@ -174,7 +186,6 @@ public class MainView extends Application {
 		});
 
 		TableColumn<TableItem, String> dirColumn = new TableColumn<TableItem, String>("保存路径");
-		dirColumn.setResizable(true);
 		dirColumn.setMinWidth(40);
 		dirColumn.setCellFactory(new Callback<TableColumn<TableItem, String>, TableCell<TableItem, String>>() {
 
