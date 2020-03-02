@@ -18,6 +18,8 @@ public class EXTINF {
 	private String tsName;// 9660a92c9d8000003.ts
 	@XmlElement
 	private String ts;// http://xxxx/xxxx/xxx/9660a92c9d8000003.ts
+	@XmlElement
+	private boolean encrypt;
 
 	public String getM3u8() {
 		return m3u8;
@@ -57,6 +59,14 @@ public class EXTINF {
 
 	public void setTs(String ts) {
 		this.ts = ts;
+	}
+
+	public boolean isEncrypt() {
+		return encrypt;
+	}
+
+	public void setEncrypt(boolean encrypt) {
+		this.encrypt = encrypt;
 	}
 
 	public EXTINF() {

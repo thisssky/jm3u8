@@ -1,11 +1,13 @@
 package application.utils;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -70,6 +72,8 @@ import application.dto.EXTINF;
 public class M3U8 {
 
 	public static String EXTM3U = "#EXTM3U";
+//	#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=800000,RESOLUTION=1080x608
+
 	public static String KEY = "#EXT-X-KEY";
 	public static String VERSION = "#EXT-X-VERSION";
 	public static String TARGETDURATION = "#EXT-X-TARGETDURATION";
@@ -78,7 +82,7 @@ public class M3U8 {
 	public static String ENDLIST = "#EXT-X-ENDLIST";
 
 	public static void main(String[] args) {
-		String m3u8 = "https://cn6.7639616.com/hls/20191126/5732e6c5fd2ba9580797bbac42bc3afa/1574769508/index.m3u8";
+		String m3u8 = "https://video.lllwo2o.com:8091/20180615/DWT6HJU129/index.m3u8";
 		String dir = "C:\\Users\\kyh\\Desktop\\m3u8\\qyn";
 		List<application.dto.EXTINF> ts = ts(m3u8, dir);
 		JAXBUtils.create(dir, ts);
@@ -151,35 +155,114 @@ public class M3U8 {
 		ArrayList<EXTINF> ts = new ArrayList<EXTINF>();
 		EXTINF extinf = null;
 		int index = 0;
+		boolean encrypted = false;
+		String m3u8Prefix = m3u8.substring(0, m3u8.lastIndexOf("/"));
+		String redata = "";
 		for (String data : list) {
-			String m3u8Prefix = m3u8.substring(0, m3u8.lastIndexOf("/"));
+			if (!encrypted && data.contains(KEY)) {
+				encrypted = true;
+			}
 			if (data.endsWith(".ts")) {
 				if (data.contains("/")) {
 					String rts = data.substring(data.lastIndexOf("/"));
 					String tsPrefix = data.substring(0, data.lastIndexOf("/"));
 					int containPrefix = m3u8Prefix.indexOf(tsPrefix);
 					if (containPrefix > -1) {
-						data = m3u8Prefix + rts;
+						redata = m3u8Prefix + rts;
 					} else {
 						if (!tsPrefix.startsWith("/")) {
 							tsPrefix = "/" + tsPrefix;
 						}
-						data = m3u8Prefix + tsPrefix + rts;
+						redata = m3u8Prefix + tsPrefix + rts;
 					}
 				} else {
-					data = m3u8Prefix + "/" + data;
+					redata = m3u8Prefix + "/" + data;
 				}
 				extinf = new EXTINF(m3u8, dir, index);
-				extinf.setTs(data);
-				extinf.setTsName(data.substring(data.lastIndexOf("/") + 1));
+				extinf.setTs(redata);
+				extinf.setTsName(redata.substring(redata.lastIndexOf("/") + 1));
+				extinf.setEncrypt(encrypted);
 				ts.add(extinf);
 
 				index++;
 			}
 		}
-		// 写下ts文件
-		writeTS(ts);
+		if (encrypted) {
+			// 加密视频创建index.m3u8,uri修改成本地，extinf也修改成本地
+			writeCIndex(m3u8, list, dir);
+		} else {
+			// 写下ts文件
+			writeTS(ts);
+		}
 		return ts;
+	}
+
+	private static void writeCIndex(String m3u8, List<String> list, String dir) {
+		int index = 0;
+		BufferedReader bufferedReader = null;
+		BufferedWriter bufferedWriter = null;
+		BufferedWriter cindexWriter = null;
+
+		try {
+			cindexWriter = new BufferedWriter(new FileWriter(dir + File.separator + "cindex.m3u8"));
+			for (int i = 0, len = list.size(); i < len; i++) {
+				String line = list.get(i);
+				if (line.contains(KEY)) {
+					String prefix = m3u8.substring(0, m3u8.lastIndexOf("/") + 1);
+					String key = line.substring(line.lastIndexOf("=") + 2, line.lastIndexOf("\""));
+					URL url = new URL(prefix + key);
+					bufferedReader = new BufferedReader(new InputStreamReader(url.openStream(), "utf-8"));
+					String read;
+					bufferedWriter = new BufferedWriter(new FileWriter(dir + File.separator + "key.key"));
+					while ((read = bufferedReader.readLine()) != null) {
+						bufferedWriter.write(read);
+					}
+					// 修改
+					String redir = dir.replace("\\", "/");
+					line = line.substring(0, line.lastIndexOf("=") + 1) + "\"" + redir + "/" + key + "\"";
+				}
+				if (line.endsWith(".ts")) {
+					String replace = line.replace(line, dir + File.separator + index + "-" + line);
+					line = replace;
+					index++;
+				}
+				cindexWriter.write(line);
+				cindexWriter.newLine();
+			}
+
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (null != bufferedReader) {
+				try {
+					bufferedReader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+			}
+			if (null != bufferedWriter) {
+				try {
+					bufferedWriter.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+			}
+			if (null != cindexWriter) {
+				try {
+					cindexWriter.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+			}
+		}
+
 	}
 
 	private static String writeTS(ArrayList<EXTINF> ts) {
