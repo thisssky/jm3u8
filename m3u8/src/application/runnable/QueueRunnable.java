@@ -7,20 +7,20 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import application.component.ProgressBarTask;
 import application.dto.EXTINF;
+import application.utils.JAXBUtils;
 
 public class QueueRunnable implements Runnable {
-	private ArrayBlockingQueue<EXTINF> queue;
+	private ConcurrentLinkedQueue<EXTINF> queue;
 	private AtomicInteger atomicInteger;
 	private int size;
 	private ProgressBarTask task;
-	private volatile boolean stop = false;
 
-	public QueueRunnable(ProgressBarTask task, ArrayBlockingQueue<EXTINF> arrayBlockingQueue,
+	public QueueRunnable(ProgressBarTask task, ConcurrentLinkedQueue<EXTINF> arrayBlockingQueue,
 			AtomicInteger atomicInteger, int size) {
 		this.task = task;
 		this.queue = arrayBlockingQueue;
@@ -30,67 +30,48 @@ public class QueueRunnable implements Runnable {
 
 	@Override
 	public void run() {
-		BufferedOutputStream bufferedOutputStream = null;
-		BufferedInputStream bufferedInputStream = null;
 		EXTINF extinf = null;
-		try {
-			while (!stop) {
-				extinf = queue.take();
-//				if (null != extinf) {
+		while (null != (extinf = queue.poll())) {
+			download(extinf);
+		}
 
-				File file = new File(extinf.getDir());
-				if (!file.exists()) {
-					file.mkdirs();
-				}
-				URL url = new URL(extinf.getTs());
-				// 下载资源
-				bufferedInputStream = new BufferedInputStream(url.openStream());
-				String fileOutPath = extinf.getDir() + File.separator + extinf.getIndex() + "-" + extinf.getTsName();
-				bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(new File(fileOutPath)));
-				byte[] bytes = new byte[1024];
-				int length = 0;
-				while ((length = bufferedInputStream.read(bytes)) != -1) {
-					bufferedOutputStream.write(bytes, 0, length);
-				}
-				int incrementAndGet = atomicInteger.incrementAndGet();
-				//
-				System.out.println(incrementAndGet);
-				task.update(incrementAndGet, size);
-				if (incrementAndGet == size) {
-					System.out.println("停止线程:" + Thread.currentThread().getName() + "," + incrementAndGet);
-					break;
-				}
-//				}
+	}
+
+	private void download(EXTINF extinf) {
+		BufferedInputStream bufferedInputStream = null;
+		BufferedOutputStream bufferedOutputStream = null;
+		String fileOutPath = extinf.getDir() + File.separator + extinf.getIndex() + "-" + extinf.getTsName();
+		try {
+			URL url = new URL(extinf.getTs());
+			bufferedInputStream = new BufferedInputStream(url.openStream());
+			bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(new File(fileOutPath)));
+			byte[] bytes = new byte[1024];
+			int length = 0;
+			while ((length = bufferedInputStream.read(bytes)) != -1) {
+				bufferedOutputStream.write(bytes, 0, length);
 			}
-			System.out.println("break==========");
+			int incrementAndGet = atomicInteger.incrementAndGet();
+			task.update(incrementAndGet, size);
 		} catch (MalformedURLException e) {
-			e.printStackTrace();
-			System.out.println("MalformedURLException:" + Thread.currentThread().getName() + ":");
+			extinf.setTsName("MalformedURLException" + e.getMessage());
+			JAXBUtils.error(extinf.getDir(), extinf);
 		} catch (IOException e) {
-			System.err.println("插入队列中:" + Thread.currentThread().getName() + ":" + extinf.getTs());
-			queue.offer(extinf);
-		} catch (InterruptedException e) {
-			System.out.println("InterruptedException:" + Thread.currentThread().getName() + ":");
-			e.printStackTrace();
+			extinf.setTsName("IOException" + e.getMessage());
+			JAXBUtils.error(extinf.getDir(), extinf);
+			download(extinf);
 		} finally {
-			System.out.println("finally:" + Thread.currentThread().getName() + ":");
 			try {
+				if (null != bufferedInputStream) {
+					bufferedInputStream.close();
+				}
 				if (null != bufferedOutputStream) {
 					bufferedOutputStream.close();
 				}
 			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			try {
-				if (null != bufferedInputStream) {
-
-				}
-				bufferedInputStream.close();
-			} catch (IOException e) {
-				e.printStackTrace();
+				extinf.setTsName("close.IOException" + e.getMessage());
+				JAXBUtils.error(extinf.getDir(), extinf);
 			}
 		}
-
 	}
 
 }

@@ -81,13 +81,6 @@ public class M3U8 {
 	public static String EXTINF = "#EXTINF";
 	public static String ENDLIST = "#EXT-X-ENDLIST";
 
-	public static void main(String[] args) {
-		String m3u8 = "https://video.lllwo2o.com:8091/20180615/DWT6HJU129/index.m3u8";
-		String dir = "C:\\Users\\kyh\\Desktop\\m3u8\\qyn";
-		List<application.dto.EXTINF> ts = ts(m3u8, dir);
-		JAXBUtils.create(dir, ts);
-	}
-
 	public static void test() {
 //		https://cn7.7639616.com/hls/20191126/eebb68accf60bff8adffe64c7ac68219/1574769804/index.m3u8
 //		   /hls/20191126/eebb68accf60bff8adffe64c7ac68219/1574769804/film_00000.ts

@@ -13,16 +13,16 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlSeeAlso({ EXTINF.class })
-public class XMLRoot<T> {
+public class XMLRoot {
 	@XmlElementWrapper
 	@XmlAnyElement(lax = true)
-	private List<T> list = new ArrayList<T>();
+	private List<EXTINF> list = new ArrayList<EXTINF>();
 
-	public List<T> getList() {
+	public List<EXTINF> getList() {
 		return list;
 	}
 
-	public void setList(List<T> list) {
+	public void setList(List<EXTINF> list) {
 		this.list = list;
 	}
 

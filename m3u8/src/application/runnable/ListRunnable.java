@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import application.component.ProgressBarTask;
 import application.dto.EXTINF;
+import application.utils.JAXBUtils;
 
 public class ListRunnable implements Runnable {
 	private ProgressBarTask task;
@@ -36,37 +37,32 @@ public class ListRunnable implements Runnable {
 			bufferedInputStream = new BufferedInputStream(url.openStream());
 			String fileOutPath = extinf.getDir() + File.separator + extinf.getIndex() + "-" + extinf.getTsName();
 			bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(new File(fileOutPath)));
-			byte[] bytes = new byte[1024 * 1024];
+			byte[] bytes = new byte[1024];
 			int length = 0;
 			while ((length = bufferedInputStream.read(bytes)) != -1) {
 				bufferedOutputStream.write(bytes, 0, length);
-				bufferedOutputStream.flush();
 			}
-
 			int incrementAndGet = atomicInteger.incrementAndGet();
 			// 更新progressBar
 			task.update(incrementAndGet, count);
-
 		} catch (MalformedURLException e) {
-			e.printStackTrace();
+			extinf.setTsName("MalformedURLException" + e.getMessage());
+			JAXBUtils.error(extinf.getDir(), extinf);
 		} catch (IOException e) {
-//			System.err.println("重新下载:" + extinf.getTs());
+			extinf.setTsName("IOException" + e.getMessage());
+			JAXBUtils.error(extinf.getDir(), extinf);
 			download(extinf);
 		} finally {
-//			System.out.println("finally:" + Thread.currentThread().getName() + ":");
 			try {
 				if (null != bufferedInputStream) {
 					bufferedInputStream.close();
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			try {
 				if (null != bufferedOutputStream) {
 					bufferedOutputStream.close();
 				}
 			} catch (IOException e) {
-				e.printStackTrace();
+				extinf.setTsName("close.IOException" + e.getMessage());
+				JAXBUtils.error(extinf.getDir(), extinf);
 			}
 		}
 	}

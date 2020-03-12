@@ -1,9 +1,11 @@
 package application.component;
 
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import application.dto.EXTINF;
@@ -14,15 +16,18 @@ import application.utils.M3U8;
 import javafx.concurrent.Task;
 
 public class ProgressBarTask extends Task<Integer> {
-	private int num = 10;
+	private int num;
 	private String m3u8;
 	private String dir;
 	private List<EXTINF> list;
 	private int size;
-	private ExecutorService executorService = Executors.newFixedThreadPool(10);
+	private ExecutorService executorService;
 	private AtomicInteger atomicInteger = new AtomicInteger(0);
 
 	public ProgressBarTask(String m3u8, String dir) {
+		num = Runtime.getRuntime().availableProcessors();
+		executorService = new ThreadPoolExecutor(num, 2 * num, 30, TimeUnit.SECONDS,
+				new LinkedBlockingQueue<Runnable>());
 		this.m3u8 = m3u8;
 		this.dir = dir;
 	}
@@ -31,23 +36,22 @@ public class ProgressBarTask extends Task<Integer> {
 	protected Integer call() throws Exception {
 
 		// 获取ts文件,并写入本地文件中
+//		https://sina.com-h-sina.com/20180810/7482_e207140b/1000k/hls/index.m3u8
 		list = M3U8.ts(m3u8, dir);
-		JAXBUtils.create(dir, list);
+		JAXBUtils.extinf(dir, list);
 		size = list.size();
 
-		ArrayBlockingQueue<EXTINF> tsQueue = new ArrayBlockingQueue<EXTINF>(size);
-		tsQueue.addAll(list);
+		ConcurrentLinkedQueue<EXTINF> queue = new ConcurrentLinkedQueue<EXTINF>(list);
 		for (int i = 0; i < num; i++) {
-
-//			queueDownload(tsQueue);
 			listDownlaod(i);
+//			queueDownload(queue);
 		}
 
 		return null;
 	}
 
-	public void queueDownload(ArrayBlockingQueue<EXTINF> tsQueue) {
-		executorService.execute(new QueueRunnable(this, tsQueue, atomicInteger, size));
+	public void queueDownload(ConcurrentLinkedQueue<EXTINF> queue) {
+		executorService.execute(new QueueRunnable(this, queue, atomicInteger, size));
 	}
 
 	public void listDownlaod(int i) {
@@ -63,4 +67,5 @@ public class ProgressBarTask extends Task<Integer> {
 	public void update(int workDone, int max) {
 		this.updateProgress(workDone, max);
 	}
+
 }
