@@ -41,7 +41,6 @@ public class ProgressBarTask extends Task<Integer> {
 		JAXBUtils.extinf(dir, list);
 		size = list.size();
 
-		ConcurrentLinkedQueue<EXTINF> queue = new ConcurrentLinkedQueue<EXTINF>(list);
 		for (int i = 0; i < num; i++) {
 			listDownlaod(i);
 //			queueDownload(queue);

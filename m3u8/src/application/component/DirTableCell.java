@@ -8,12 +8,21 @@ import application.dto.TableItem;
 import application.utils.CommonUtility;
 import javafx.event.EventHandler;
 import javafx.scene.control.TableCell;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 
 public class DirTableCell extends TableCell<TableItem, String> {
 
 	public DirTableCell() {
+		this.setOnMouseEntered(new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent event) {
+				setTooltip(new Tooltip("双击打开文件夹"));
+
+			}
+		});
 		this.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(MouseEvent event) {

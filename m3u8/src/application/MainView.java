@@ -185,6 +185,18 @@ public class MainView extends Application {
 			}
 		});
 
+		TableColumn<TableItem, ProgressBarBox> progressColumn = new TableColumn<TableItem, ProgressBarBox>("已下载");
+		progressColumn.setPrefWidth(208);
+		progressColumn.setMinWidth(208);
+		progressColumn.setMaxWidth(208);
+		progressColumn.setCellValueFactory(new PropertyValueFactory<TableItem, ProgressBarBox>("progressBarBox"));
+
+		TableColumn<TableItem, ProgressBarBox> fileSizeColumn = new TableColumn<TableItem, ProgressBarBox>("文件大小");
+		fileSizeColumn.setPrefWidth(78);
+		fileSizeColumn.setMinWidth(78);
+		fileSizeColumn.setMaxWidth(78);
+		fileSizeColumn.setCellValueFactory(new PropertyValueFactory<TableItem, ProgressBarBox>("fileSizeBox"));
+
 		TableColumn<TableItem, String> dirColumn = new TableColumn<TableItem, String>("保存路径");
 		dirColumn.setMinWidth(40);
 		dirColumn.setCellFactory(new Callback<TableColumn<TableItem, String>, TableCell<TableItem, String>>() {
@@ -195,12 +207,7 @@ public class MainView extends Application {
 				return tableCell;
 			}
 		});
-
-		TableColumn<TableItem, ProgressBarBox> progressColumn = new TableColumn<TableItem, ProgressBarBox>("已完成");
-		progressColumn.setPrefWidth(208);
-		progressColumn.setMinWidth(208);
-		progressColumn.setMaxWidth(208);
-		progressColumn.setCellValueFactory(new PropertyValueFactory<TableItem, ProgressBarBox>("progressBarBox"));
+		dirColumn.setCellValueFactory(new PropertyValueFactory<TableItem, String>("dir"));
 
 		TableColumn<TableItem, CheckBox> mergeColumn = new TableColumn<TableItem, CheckBox>("合并");
 		mergeColumn.setSortable(false);
@@ -232,9 +239,8 @@ public class MainView extends Application {
 //		});
 		mergeOptColumn.setCellValueFactory(new PropertyValueFactory<TableItem, Button>("mergeButton"));
 
-		dirColumn.setCellValueFactory(new PropertyValueFactory<TableItem, String>("dir"));
-
-		tableView.getColumns().addAll(indexColumn, progressColumn, dirColumn, mergeColumn, mergeOptColumn);
+		tableView.getColumns().addAll(indexColumn, progressColumn, fileSizeColumn, dirColumn, mergeColumn,
+				mergeOptColumn);
 
 //		new MapValueFactory<T>(key);
 

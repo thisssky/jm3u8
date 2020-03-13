@@ -2,7 +2,6 @@ package application.dto;
 
 import application.component.ProgressBarBox;
 import application.utils.CommonUtility;
-import application.utils.FFMPEG;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
@@ -20,6 +19,7 @@ public class TableItem {
 	private CheckBox mergeCheckBox;
 	private Button mergeButton;
 	private ProgressBarBox progressBarBox;
+	private ProgressBarBox fileSizeBox;
 
 	public String getM3u8() {
 		return m3u8;
@@ -61,11 +61,20 @@ public class TableItem {
 		this.progressBarBox = progressBarBox;
 	}
 
+	public ProgressBarBox getFileSizeBox() {
+		return fileSizeBox;
+	}
+
+	public void setFileSizeBox(ProgressBarBox fileSizeBox) {
+		this.fileSizeBox = fileSizeBox;
+	}
+
 	public TableItem(String m3u8, String dir) {
 		this.m3u8 = m3u8;
 		this.dir = dir;
 
 		this.progressBarBox = new ProgressBarBox(m3u8, dir);
+		this.fileSizeBox = new ProgressBarBox(dir);
 
 		this.mergeCheckBox = new CheckBox();
 		this.mergeCheckBox.setIndeterminate(false);
@@ -86,19 +95,12 @@ public class TableItem {
 					alert.setHeaderText("已合并!");
 					alert.show();
 
+				} else {
+					// 合并操作
+					fileSizeBox.merge();
+					mergeCheckBox.setIndeterminate(false);
+					mergeCheckBox.setSelected(true);
 				}
-				// 合并操作
-				Runnable runnable = new Runnable() {
-
-					@Override
-					public void run() {
-						FFMPEG.merge(dir);
-
-					}
-				};
-				new Thread(runnable).start();
-				mergeCheckBox.setIndeterminate(false);
-				mergeCheckBox.setSelected(true);
 
 			}
 		});

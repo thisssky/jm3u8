@@ -1,64 +1,73 @@
 package application.component;
 
-import java.awt.Desktop;
-import java.io.File;
-import java.io.IOException;
-
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
-public class ProgressBarBox extends Pane {
+public class ProgressBarBox extends AnchorPane {
+	private String m3u8;
+	private String dir;
 
-	private GridPane gridPane;
+	private GridPane container;
 	private ProgressBar progressBar;
-	private Label progressBarTextLabel;
-	private Service<Integer> progressBarService;
+	private Label label;
+
+	public ProgressBarBox(String dir) {
+		this.dir = dir;
+
+		progressBar = new ProgressBar();
+		progressBar.focusTraversableProperty().get();
+		progressBar.setPrefWidth(70);
+		progressBar.setProgress(0);
+		label = new Label();
+		label.autosize();
+		label.setPrefWidth(70);
+		label.setText("1024MB");
+		label.setTextFill(Color.BLACK);// web("#0076a3"));
+		label.setStyle("-fx-alignment:center;");
+
+		container = new GridPane();
+		AnchorPane.setTopAnchor(container, 2D);
+		AnchorPane.setLeftAnchor(container, 1D);
+		container.add(progressBar, 0, 0);
+		container.add(label, 0, 0);
+		getChildren().add(container);
+	}
 
 	public ProgressBarBox(String m3u8, String dir) {
+		this.m3u8 = m3u8;
+		this.dir = dir;
+
 		progressBar = new ProgressBar();
 		progressBar.focusTraversableProperty().get();
 		progressBar.setPrefWidth(200);
 		progressBar.setProgress(0);
-		progressBarTextLabel = new Label();
-		progressBarTextLabel.autosize();
-		progressBarTextLabel.setPrefWidth(200);
-		progressBarTextLabel.setText("0.00%");
-		progressBarTextLabel.setTextFill(Color.BLACK);// web("#0076a3"));
-//		progressBarTextLabel.setBackground(new Background(new BackgroundFill(Color.DARKRED, null, null)));
-//		progressBarTextLabel.setTextAlignment(TextAlignment.CENTER);
-		progressBarTextLabel.setStyle("-fx-alignment:center;");
+		label = new Label();
+		label.autosize();
+		label.setPrefWidth(200);
+		label.setText("0.00%");
+		label.setTextFill(Color.BLACK);// web("#0076a3"));
+//		label.setBackground(new Background(new BackgroundFill(Color.DARKRED, null, null)));
+//		label.setTextAlignment(TextAlignment.CENTER);
+		label.setStyle("-fx-alignment:center;");
 
-		gridPane = new GridPane();
-		gridPane.add(progressBar, 0, 0);
+		container = new GridPane();
+		AnchorPane.setTopAnchor(container, 2D);
+		AnchorPane.setLeftAnchor(container, 1D);
+		container.add(progressBar, 0, 0);
+		container.add(label, 0, 0);
+		getChildren().add(container);
 
-		gridPane.add(progressBarTextLabel, 0, 0);
+	}
 
-		getChildren().add(gridPane);
-
-//		progressBarTextLabel.setOnMouseClicked(new EventHandler<MouseEvent>() {
-//
-//			@Override
-//			public void handle(MouseEvent event) {
-//				if (MouseButton.SECONDARY == event.getButton()) {
-//					ContextMenu dirMenuItem = dirMenuItem();
-//					progressBarTextLabel.setContextMenu(dirMenuItem);
-//				}
-//
-//			}
-//		});
-
-		progressBarService = new Service<Integer>() {
+	public void download() {
+		Service<Integer> service = new Service<Integer>() {
 
 			@Override
 			protected Task<Integer> createTask() {
@@ -66,39 +75,38 @@ public class ProgressBarBox extends Pane {
 				return tasks;
 			};
 		};
-		progressBarService.progressProperty().addListener(new ChangeListener<Number>() {
+		service.progressProperty().addListener(new ChangeListener<Number>() {
 			@Override
 			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
 //				System.out.println("ob:" + observable.getValue().doubleValue() + ",old:" + oldValue.doubleValue()
 //						+ ",new:" + newValue.doubleValue());
 				progressBar.setProgress(newValue.doubleValue());
 				// 去更新label值
-				progressBarTextLabel.setText(String.format("%.2f%%", newValue.doubleValue() * 100));
+				label.setText(String.format("%.2f%%", newValue.doubleValue() * 100));
 			}
 		});
-
+		service.start();
 	}
 
-	public ContextMenu dirMenuItem() {
-		ContextMenu contextMenu = new ContextMenu();
-		MenuItem menuItem = new MenuItem("文件夾");
-		menuItem.setOnAction(new EventHandler<ActionEvent>() {
+	public void merge() {
+		// 让进度条动起来
+		progressBar.setProgress(-1);
+		Service<String> service = new Service<String>() {
 
 			@Override
-			public void handle(ActionEvent event) {
-				try {
-					Desktop.getDesktop().open(new File("C:\\Users\\kyh\\Desktop\\m3u8"));
-				} catch (IOException e) {
-				}
+			protected Task<String> createTask() {
+				return new FileSizeTask(dir);
+			};
+		};
+		service.messageProperty().addListener(new ChangeListener<String>() {
 
+			@Override
+			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+				label.setText(newValue);
 			}
 		});
-		contextMenu.getItems().addAll(menuItem);
-		return contextMenu;
+		// 获取进度条最终状态
+		progressBar.progressProperty().bind(service.progressProperty());
+		service.start();
 	}
-
-	public void download() {
-		progressBarService.start();
-	}
-
 }
