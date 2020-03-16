@@ -9,6 +9,7 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 
 public class ProgressBarBox extends AnchorPane {
 	private String m3u8;
@@ -23,13 +24,12 @@ public class ProgressBarBox extends AnchorPane {
 		this.dir = dir;
 
 		progressBar = new ProgressBar();
-		progressBar.focusTraversableProperty().get();
+		progressBar.setPrefHeight(22);
 		progressBar.setPrefWidth(70);
 		progressBar.setProgress(0);
-		label = new Label();
-		label.autosize();
+		label = new Label("0MB");
+		label.setFont(Font.font(16));
 		label.setPrefWidth(70);
-		label.setText("0MB");
 		label.setTextFill(Color.BLACK);// web("#0076a3"));
 		label.setStyle("-fx-alignment:center;");
 
@@ -46,16 +46,13 @@ public class ProgressBarBox extends AnchorPane {
 		this.dir = dir;
 
 		progressBar = new ProgressBar();
-		progressBar.focusTraversableProperty().get();
+		progressBar.setPrefHeight(22);
 		progressBar.setPrefWidth(200);
 		progressBar.setProgress(0);
-		label = new Label();
-		label.autosize();
+		label = new Label("0.00%");
+		label.setFont(Font.font(16));
 		label.setPrefWidth(200);
-		label.setText("0.00%");
 		label.setTextFill(Color.BLACK);// web("#0076a3"));
-//		label.setBackground(new Background(new BackgroundFill(Color.DARKRED, null, null)));
-//		label.setTextAlignment(TextAlignment.CENTER);
 		label.setStyle("-fx-alignment:center;");
 
 		container = new GridPane();
