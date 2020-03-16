@@ -7,6 +7,7 @@ import java.io.IOException;
 import application.dto.TableItem;
 import application.utils.CommonUtility;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
@@ -50,6 +51,7 @@ public class DirTableCell extends TableCell<TableItem, String> {
 	protected void updateItem(String item, boolean empty) {
 		super.updateItem(item, empty);
 		this.setText(item);
+		this.setAlignment(Pos.CENTER);
 	}
 
 }

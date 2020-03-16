@@ -52,12 +52,14 @@ public class QueueRunnable implements Runnable {
 			}
 			int incrementAndGet = atomicInteger.incrementAndGet();
 			task.update(incrementAndGet, size);
+			// 每更新成功就删除记录文件中的ts记录
+			JAXBUtils.delete(JAXBUtils.EXTINF_TYPE, extinf);
 		} catch (MalformedURLException e) {
 			extinf.setTsName("MalformedURLException" + e.getMessage());
-			JAXBUtils.error(extinf.getDir(), extinf);
+			JAXBUtils.error(extinf);
 		} catch (IOException e) {
 			extinf.setTsName("IOException" + e.getMessage());
-			JAXBUtils.error(extinf.getDir(), extinf);
+			JAXBUtils.error(extinf);
 			download(extinf);
 		} finally {
 			try {
@@ -69,7 +71,7 @@ public class QueueRunnable implements Runnable {
 				}
 			} catch (IOException e) {
 				extinf.setTsName("close.IOException" + e.getMessage());
-				JAXBUtils.error(extinf.getDir(), extinf);
+				JAXBUtils.error(extinf);
 			}
 		}
 	}

@@ -70,6 +70,7 @@ import application.dto.EXTINF;
 // 有加密的
 // https://www.jianshu.com/p/1b0adcc7b426
 public class M3U8 {
+	public static final String TS_FILE = "ts.txt";
 
 	public static String EXTM3U = "#EXTM3U";
 //	#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=800000,RESOLUTION=1080x608
@@ -120,6 +121,31 @@ public class M3U8 {
 
 	}
 
+	public static List<String> index(String urlPath) {
+		BufferedReader bufferedReader = null;
+		String read = "";
+		ArrayList<String> list = new ArrayList<String>();
+		try {
+			URL url = new URL(urlPath);
+			bufferedReader = new BufferedReader(new InputStreamReader(url.openStream(), "utf-8"));
+			while ((read = bufferedReader.readLine()) != null) {
+				list.add(read);
+			}
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				bufferedReader.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return list;
+	}
+
 	public static List<EXTINF> ts(String m3u8, String dir) {
 		List<String> list = index(m3u8);
 		String last = list.get(list.size() - 1);
@@ -141,7 +167,7 @@ public class M3U8 {
 			dirFile.mkdirs();
 		}
 		// 删除已有文件
-		String filePath = dir + File.separator + "tsFile.txt";
+		String filePath = dir + File.separator + TS_FILE;
 		File file = new File(filePath);
 		file.delete();
 		// 处理ts序列
@@ -267,7 +293,7 @@ public class M3U8 {
 			tsBuilder.append("'");
 			tsBuilder.append("\r\n");
 		}
-		String filePath = ts.get(0).getDir() + File.separator + "tsFile.txt";
+		String filePath = ts.get(0).getDir() + File.separator + TS_FILE;
 
 		File tsfile = new File(filePath);
 		FileWriter fileWriter = null;
@@ -309,31 +335,7 @@ public class M3U8 {
 		}
 	}
 
-	public static List<String> index(String urlPath) {
-		BufferedReader bufferedReader = null;
-		String read = "";
-		ArrayList<String> list = new ArrayList<String>();
-		try {
-			URL url = new URL(urlPath);
-			bufferedReader = new BufferedReader(new InputStreamReader(url.openStream(), "utf-8"));
-			while ((read = bufferedReader.readLine()) != null) {
-				list.add(read);
-			}
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				bufferedReader.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-		return list;
-	}
-
+	@Deprecated
 	public static List<String> filter(String content) {
 		Pattern pattern = Pattern.compile(".*ts");
 		Matcher ma = pattern.matcher(content);

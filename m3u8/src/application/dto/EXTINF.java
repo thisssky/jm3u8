@@ -61,7 +61,7 @@ public class EXTINF {
 		this.ts = ts;
 	}
 
-	public boolean isEncrypt() {
+	public boolean getEncrypt() {
 		return encrypt;
 	}
 

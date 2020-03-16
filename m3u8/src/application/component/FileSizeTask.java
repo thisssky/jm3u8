@@ -3,7 +3,7 @@ package application.component;
 import application.utils.FFMPEG;
 import javafx.concurrent.Task;
 
-public class FileSizeTask extends Task<String> {
+public class FileSizeTask extends Task<Integer> {
 	private String dir;
 
 	public FileSizeTask(String dir) {
@@ -11,7 +11,7 @@ public class FileSizeTask extends Task<String> {
 	}
 
 	@Override
-	protected String call() throws Exception {
+	protected Integer call() throws Exception {
 		FFMPEG.merge(dir, this);
 		return null;
 	}

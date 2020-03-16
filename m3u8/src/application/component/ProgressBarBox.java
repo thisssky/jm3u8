@@ -17,6 +17,7 @@ public class ProgressBarBox extends AnchorPane {
 	private GridPane container;
 	private ProgressBar progressBar;
 	private Label label;
+	private Service<Integer> service;
 
 	public ProgressBarBox(String dir) {
 		this.dir = dir;
@@ -28,7 +29,7 @@ public class ProgressBarBox extends AnchorPane {
 		label = new Label();
 		label.autosize();
 		label.setPrefWidth(70);
-		label.setText("1024MB");
+		label.setText("0MB");
 		label.setTextFill(Color.BLACK);// web("#0076a3"));
 		label.setStyle("-fx-alignment:center;");
 
@@ -67,7 +68,7 @@ public class ProgressBarBox extends AnchorPane {
 	}
 
 	public void download() {
-		Service<Integer> service = new Service<Integer>() {
+		service = new Service<Integer>() {
 
 			@Override
 			protected Task<Integer> createTask() {
@@ -91,10 +92,10 @@ public class ProgressBarBox extends AnchorPane {
 	public void merge() {
 		// 让进度条动起来
 		progressBar.setProgress(-1);
-		Service<String> service = new Service<String>() {
+		service = new Service<Integer>() {
 
 			@Override
-			protected Task<String> createTask() {
+			protected Task<Integer> createTask() {
 				return new FileSizeTask(dir);
 			};
 		};
@@ -102,8 +103,21 @@ public class ProgressBarBox extends AnchorPane {
 
 			@Override
 			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-				label.setText(newValue);
+//				System.out.println("ob:" + observable.getValue() + ",old:" + oldValue + ",new:" + newValue);
+				int l = Integer.valueOf(newValue);
+				String text = "";
+				if (l / 1024 < 1) {
+					text = l + "KB";
+				} else if (l / 1024 > 1 && l / (1024 * 1024) < 1) {
+					text = (l / 1024) + "MB";
+				} else if (l / (1024 * 1024) > 1 && l / (1024 * 1024 * 1024) < 1) {
+					text = l / (1024 * 1024) + "." + (l / 1024) + "GB";
+				}
+
+				label.setText(text);
+
 			}
+
 		});
 		// 获取进度条最终状态
 		progressBar.progressProperty().bind(service.progressProperty());
