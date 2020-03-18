@@ -9,6 +9,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 
+@Deprecated
 public class ButtonTableCell extends TableCell<EXTINF, Button> {
 	private String buttonText;
 	private Button button;

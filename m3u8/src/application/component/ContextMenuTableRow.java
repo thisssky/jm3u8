@@ -1,19 +1,19 @@
 package application.component;
 
+import application.dto.TableItem;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableRow;
 
-public class ExtTableRow<T> extends TableRow<T> {
-
+public class ContextMenuTableRow extends TableRow<TableItem> {
 	private ContextMenu contextMenu = new ContextMenu();
 	private MenuItem deleteMenuItem = new MenuItem("删除");
 	private MenuItem suspendMenuItem = new MenuItem("暂停");
 	private MenuItem resumeMenuItem = new MenuItem("继续下载");
 
-	public ExtTableRow() {
+	public ContextMenuTableRow() {
 
 		super();
 		resumeMenuItem.setDisable(true);
@@ -37,6 +37,9 @@ public class ExtTableRow<T> extends TableRow<T> {
 			public void handle(ActionEvent event) {
 				resumeMenuItem.setDisable(false);
 				suspendMenuItem.setDisable(true);
+				TableItem tableItem = getTableView().getItems().get(getIndex());
+				tableItem.getDownloadColumn().supend();
+
 			}
 		});
 		resumeMenuItem.setOnAction(new EventHandler<ActionEvent>() {
@@ -45,6 +48,8 @@ public class ExtTableRow<T> extends TableRow<T> {
 			public void handle(ActionEvent event) {
 				suspendMenuItem.setDisable(false);
 				resumeMenuItem.setDisable(true);
+				TableItem tableItem = getTableView().getItems().get(getIndex());
+				tableItem.getDownloadColumn().resume();
 			}
 		});
 

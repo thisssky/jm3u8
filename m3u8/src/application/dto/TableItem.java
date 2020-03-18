@@ -1,6 +1,7 @@
 package application.dto;
 
-import application.component.ProgressBarBox;
+import application.component.DownloadColumn;
+import application.component.MergeColumn;
 import application.utils.CommonUtility;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -18,8 +19,8 @@ public class TableItem {
 
 	private CheckBox mergeCheckBox;
 	private Button mergeButton;
-	private ProgressBarBox progressBarBox;
-	private ProgressBarBox fileSizeBox;
+	private DownloadColumn downloadColumn;
+	private MergeColumn mergeColumn;
 
 	public String getM3u8() {
 		return m3u8;
@@ -53,28 +54,28 @@ public class TableItem {
 		this.mergeButton = mergeButton;
 	}
 
-	public ProgressBarBox getProgressBarBox() {
-		return progressBarBox;
+	public DownloadColumn getDownloadColumn() {
+		return downloadColumn;
 	}
 
-	public void setProgressBarBox(ProgressBarBox progressBarBox) {
-		this.progressBarBox = progressBarBox;
+	public void setDownloadColumn(DownloadColumn downloadColumn) {
+		this.downloadColumn = downloadColumn;
 	}
 
-	public ProgressBarBox getFileSizeBox() {
-		return fileSizeBox;
+	public MergeColumn getMergeColumn() {
+		return mergeColumn;
 	}
 
-	public void setFileSizeBox(ProgressBarBox fileSizeBox) {
-		this.fileSizeBox = fileSizeBox;
+	public void setMergeColumn(MergeColumn mergeColumn) {
+		this.mergeColumn = mergeColumn;
 	}
 
 	public TableItem(String m3u8, String dir) {
 		this.m3u8 = m3u8;
 		this.dir = dir;
 
-		this.progressBarBox = new ProgressBarBox(m3u8, dir);
-		this.fileSizeBox = new ProgressBarBox(dir);
+		this.downloadColumn = new DownloadColumn(m3u8, dir);
+		this.mergeColumn = new MergeColumn(dir);
 
 		this.mergeCheckBox = new CheckBox();
 		this.mergeCheckBox.setIndeterminate(false);
@@ -97,7 +98,7 @@ public class TableItem {
 
 				} else {
 					// 合并操作
-					fileSizeBox.merge();
+					mergeColumn.merge();
 					mergeCheckBox.setIndeterminate(false);
 					mergeCheckBox.setSelected(true);
 				}

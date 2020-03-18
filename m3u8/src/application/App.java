@@ -1,18 +1,17 @@
 package application;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import application.component.DirTableCell;
-import application.component.ExtTableRow;
-import application.component.ProgressBarBox;
+import application.component.DownloadColumn;
+import application.component.ContextMenuTableRow;
+import application.component.MergeColumn;
 import application.dto.TableItem;
 import application.dto.XMLRoot;
 import application.utils.CommonUtility;
 import application.utils.JAXBUtils;
 import javafx.application.Application;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -30,7 +29,6 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -52,7 +50,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 
-public class MainView extends Application {
+public class App extends Application {
 	private int width = 800;
 	private int height = 500;
 	private Stage primaryStage;
@@ -158,9 +156,7 @@ public class MainView extends Application {
 		label.setFont(new Font(30));
 		tableView.setPlaceholder(label);
 
-//		Callback<TableView<TableItem>, TableRow<TableItem>> rowFactory = tableView.getRowFactory();
-		TableViewSelectionModel<TableItem> selectionModel = tableView.getSelectionModel();
-//		selectionModel.setSelectionMode(SelectionMode.MULTIPLE);
+//		TableViewSelectionModel<TableItem> selectionModel = tableView.getSelectionModel();
 		// set selection mode to only 1 row
 //		selectionModel.setSelectionMode(SelectionMode.SINGLE);
 		// set selection mode to multiple rows
@@ -196,18 +192,6 @@ public class MainView extends Application {
 			}
 		});
 
-		TableColumn<TableItem, ProgressBarBox> progressColumn = new TableColumn<TableItem, ProgressBarBox>("已下载");
-		progressColumn.setPrefWidth(208);
-		progressColumn.setMinWidth(208);
-		progressColumn.setMaxWidth(208);
-		progressColumn.setCellValueFactory(new PropertyValueFactory<TableItem, ProgressBarBox>("progressBarBox"));
-
-		TableColumn<TableItem, ProgressBarBox> fileSizeColumn = new TableColumn<TableItem, ProgressBarBox>("文件大小");
-		fileSizeColumn.setPrefWidth(78);
-		fileSizeColumn.setMinWidth(78);
-		fileSizeColumn.setMaxWidth(78);
-		fileSizeColumn.setCellValueFactory(new PropertyValueFactory<TableItem, ProgressBarBox>("fileSizeBox"));
-
 		TableColumn<TableItem, String> dirColumn = new TableColumn<TableItem, String>("保存路径");
 		dirColumn.setMinWidth(40);
 		dirColumn.setCellFactory(new Callback<TableColumn<TableItem, String>, TableCell<TableItem, String>>() {
@@ -219,6 +203,18 @@ public class MainView extends Application {
 			}
 		});
 		dirColumn.setCellValueFactory(new PropertyValueFactory<TableItem, String>("dir"));
+
+		TableColumn<TableItem, DownloadColumn> downloadColumn = new TableColumn<TableItem, DownloadColumn>("已下载");
+		downloadColumn.setPrefWidth(208);
+		downloadColumn.setMinWidth(208);
+		downloadColumn.setMaxWidth(208);
+		downloadColumn.setCellValueFactory(new PropertyValueFactory<TableItem, DownloadColumn>("downloadColumn"));
+
+		TableColumn<TableItem, MergeColumn> fileSizeColumn = new TableColumn<TableItem, MergeColumn>("文件大小");
+		fileSizeColumn.setPrefWidth(78);
+		fileSizeColumn.setMinWidth(78);
+		fileSizeColumn.setMaxWidth(78);
+		fileSizeColumn.setCellValueFactory(new PropertyValueFactory<TableItem, MergeColumn>("mergeColumn"));
 
 		TableColumn<TableItem, CheckBox> mergeColumn = new TableColumn<TableItem, CheckBox>("合并");
 		mergeColumn.setSortable(false);
@@ -233,28 +229,13 @@ public class MainView extends Application {
 		mergeOptColumn.setPrefWidth(46);
 		mergeOptColumn.setMinWidth(46);
 		mergeOptColumn.setMaxWidth(46);
-//		optColumn.setCellFactory((callback) -> {
-//			ButtonTableCell cell = new ButtonTableCell();
-//			return cell;
-//		});
-//		optColumn.setCellFactory(new Callback<TableColumn<EXTINF_TYPE, Button>, TableCell<EXTINF_TYPE, Button>>() {
-//			private int index = 0;
-//
-//			@Override
-//			public TableCell<EXTINF_TYPE, Button> call(TableColumn<EXTINF_TYPE, Button> param) {
-//				ButtonTableCell tableCell = new ButtonTableCell(tableView, optColumn, "合并" + index);
-//				index++;
-////				tableCell.addCell(mergeTableCells);
-//				return tableCell;
-//			}
-//		});
 		mergeOptColumn.setCellValueFactory(new PropertyValueFactory<TableItem, Button>("mergeButton"));
 
 		tableView.setRowFactory(new Callback<TableView<TableItem>, TableRow<TableItem>>() {
 
 			@Override
 			public TableRow<TableItem> call(TableView<TableItem> param) {
-				ExtTableRow<TableItem> extTableRow = new ExtTableRow<TableItem>();
+				ContextMenuTableRow extTableRow = new ContextMenuTableRow();
 				return extTableRow;
 			}
 		});
@@ -292,7 +273,7 @@ public class MainView extends Application {
 
 			}
 		});
-		tableView.getColumns().addAll(indexColumn, dirColumn, progressColumn, fileSizeColumn, mergeColumn,
+		tableView.getColumns().addAll(indexColumn, dirColumn, downloadColumn, fileSizeColumn, mergeColumn,
 				mergeOptColumn);
 
 //		ArrayList<TableItem> arrayList = new ArrayList<TableItem>();
@@ -366,7 +347,7 @@ public class MainView extends Application {
 					// 启动下载
 					TableItem tableItem = new TableItem(downloadUrl, dir);
 					tableView.getItems().add(tableItem);
-					tableItem.getProgressBarBox().download();
+					tableItem.getDownloadColumn().download2();
 				}
 			}
 		});

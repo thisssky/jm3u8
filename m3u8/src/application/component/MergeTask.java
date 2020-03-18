@@ -3,10 +3,10 @@ package application.component;
 import application.utils.FFMPEG;
 import javafx.concurrent.Task;
 
-public class FileSizeTask extends Task<Integer> {
+public class MergeTask extends Task<Integer> {
 	private String dir;
 
-	public FileSizeTask(String dir) {
+	public MergeTask(String dir) {
 		this.dir = dir;
 	}
 

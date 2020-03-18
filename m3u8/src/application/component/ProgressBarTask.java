@@ -2,7 +2,6 @@ package application.component;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -21,13 +20,13 @@ public class ProgressBarTask extends Task<Integer> {
 	private String dir;
 	private List<EXTINF> list;
 	private int size;
-	private ExecutorService executorService;
+	private ThreadPoolExecutor executorService;
 	private AtomicInteger atomicInteger = new AtomicInteger(0);
 
 	public ProgressBarTask(String m3u8, String dir) {
 		num = Runtime.getRuntime().availableProcessors();
-		executorService = new ThreadPoolExecutor(num, 2 * num, 30, TimeUnit.SECONDS,
-				new LinkedBlockingQueue<Runnable>());
+		executorService = new ThreadPoolExecutor(num, num, 1, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+		executorService.allowCoreThreadTimeOut(true);
 		this.m3u8 = m3u8;
 		this.dir = dir;
 	}
