@@ -20,12 +20,13 @@ public class ExtTableRow<T> extends TableRow<T> {
 
 				if (getIndex() < getTableView().getItems().size()) {
 
-					System.out.println(2);
-
 					ContextMenu contextMenu = new ContextMenu();
 					MenuItem deleteMenuItem = new MenuItem("删除");
-					MenuItem deleteMenuItem2 = new MenuItem("删除");
-					MenuItem deleteMenuItem3 = new MenuItem("删除");
+					contextMenu.getItems().add(deleteMenuItem);
+					MenuItem suspendMenuItem = new MenuItem("暂停");
+					contextMenu.getItems().add(suspendMenuItem);
+					MenuItem resumeMenuItem = new MenuItem("继续下载");
+					contextMenu.getItems().add(resumeMenuItem);
 					deleteMenuItem.setOnAction(new EventHandler<ActionEvent>() {
 
 						@Override
@@ -35,15 +36,9 @@ public class ExtTableRow<T> extends TableRow<T> {
 
 						}
 					});
-					contextMenu.getItems().add(deleteMenuItem);
-//					contextMenu.getItems().add(deleteMenuItem2);
-//					contextMenu.getItems().add(deleteMenuItem3);
-					Window window2 = getScene().getWindow();
-
-//					contextMenu.show((Node) event.getTarget(), event.getSceneX() + window2.getX(),
-//							event.getSceneY() + window2.getY());
-					contextMenu.show(window2, event.getSceneX() + window2.getX() + 8,
-							event.getSceneY() + window2.getY() + 30);
+					Window window = getScene().getWindow();
+					contextMenu.show(window, event.getSceneX() + window.getX() + 8,
+							event.getSceneY() + window.getY() + 30);
 				}
 			}
 		});
