@@ -10,6 +10,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 
@@ -33,7 +34,7 @@ public class DirTableCell extends TableCell<TableItem, String> {
 						try {
 							File file = new File(item.getDir());
 							if (!file.isDirectory()) {
-								CommonUtility.alert("文件夹错误");
+								CommonUtility.alert("文件夹错误",AlertType.ERROR);
 							} else {
 								Desktop.getDesktop().open(file);
 							}

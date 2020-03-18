@@ -2,12 +2,15 @@ package application;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 import application.component.DirTableCell;
 import application.component.ExtTableRow;
 import application.component.ProgressBarBox;
 import application.dto.TableItem;
+import application.dto.XMLRoot;
 import application.utils.CommonUtility;
+import application.utils.JAXBUtils;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -32,6 +35,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
+import javafx.scene.input.DragEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -154,14 +158,6 @@ public class MainView extends Application {
 		label.setFont(new Font(30));
 		tableView.setPlaceholder(label);
 
-		tableView.setRowFactory(new Callback<TableView<TableItem>, TableRow<TableItem>>() {
-
-			@Override
-			public TableRow<TableItem> call(TableView<TableItem> param) {
-				ExtTableRow<TableItem> extTableRow = new ExtTableRow<TableItem>();
-				return extTableRow;
-			}
-		});
 //		Callback<TableView<TableItem>, TableRow<TableItem>> rowFactory = tableView.getRowFactory();
 		TableViewSelectionModel<TableItem> selectionModel = tableView.getSelectionModel();
 //		selectionModel.setSelectionMode(SelectionMode.MULTIPLE);
@@ -254,6 +250,48 @@ public class MainView extends Application {
 //		});
 		mergeOptColumn.setCellValueFactory(new PropertyValueFactory<TableItem, Button>("mergeButton"));
 
+		tableView.setRowFactory(new Callback<TableView<TableItem>, TableRow<TableItem>>() {
+
+			@Override
+			public TableRow<TableItem> call(TableView<TableItem> param) {
+				ExtTableRow<TableItem> extTableRow = new ExtTableRow<TableItem>();
+				return extTableRow;
+			}
+		});
+		tableView.setOnDragEntered(new EventHandler<DragEvent>() {
+
+			@Override
+			public void handle(DragEvent event) {
+				List<File> files = event.getDragboard().getFiles();
+				boolean flag = false;
+				for (int i = 0; i < files.size(); i++) {
+					File file = files.get(i);
+					if (file.getName().equals(JAXBUtils.EXTINF_TYPE)) {
+						ObservableList<TableItem> items = tableView.getItems();
+						for (TableItem tableItem : items) {
+							if (tableItem.getDir().equals(file.getParent())) {
+								flag = true;
+								CommonUtility.alert("已存在!", AlertType.ERROR);
+								break;
+							}
+						}
+						if (flag) {
+							break;
+						} else {
+
+							XMLRoot xmlRoot = JAXBUtils.read(file);
+							TableItem tableItem = new TableItem(xmlRoot.getM3u8(), xmlRoot.getDir());
+							// 下载
+							// tableItem.getProgressBarBox().download();
+							tableView.getItems().add(tableItem);
+						}
+					} else {
+						CommonUtility.alert("文件格式不对!", AlertType.ERROR);
+					}
+				}
+
+			}
+		});
 		tableView.getColumns().addAll(indexColumn, dirColumn, progressColumn, fileSizeColumn, mergeColumn,
 				mergeOptColumn);
 

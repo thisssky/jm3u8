@@ -69,8 +69,8 @@ public class CommonUtility {
 		return image;
 	}
 
-	public static void alert(String headerText) {
-		Alert urlAlert = new Alert(AlertType.ERROR);
+	public static void alert(String headerText, AlertType alertType) {
+		Alert urlAlert = new Alert(alertType);
 		Stage window = (Stage) urlAlert.getDialogPane().getScene().getWindow();
 		Image image = getImage("title.png");
 		window.getIcons().add(image);
