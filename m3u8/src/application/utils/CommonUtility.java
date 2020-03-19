@@ -5,12 +5,15 @@ import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
@@ -78,4 +81,20 @@ public class CommonUtility {
 		urlAlert.setTitle("提示");
 		urlAlert.show();
 	}
+
+	public static boolean confirm(AlertType alertType, String headerText) {
+		Alert alert = new Alert(alertType);
+		Stage window = (Stage) alert.getDialogPane().getScene().getWindow();
+		Image image = getImage("title.png");
+		window.getIcons().add(image);
+		alert.setHeaderText(headerText);
+		alert.setTitle("提示");
+		Optional<ButtonType> condition = alert.showAndWait();
+		if (condition.get().getButtonData().equals(ButtonData.OK_DONE)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 }

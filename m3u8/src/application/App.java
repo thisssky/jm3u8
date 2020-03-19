@@ -3,9 +3,9 @@ package application;
 import java.io.File;
 import java.util.List;
 
+import application.component.ContextMenuTableRow;
 import application.component.DirTableCell;
 import application.component.DownloadColumn;
-import application.component.ContextMenuTableRow;
 import application.component.MergeColumn;
 import application.dto.TableItem;
 import application.dto.XMLRoot;
@@ -262,9 +262,9 @@ public class App extends Application {
 
 							XMLRoot xmlRoot = JAXBUtils.read(file);
 							TableItem tableItem = new TableItem(xmlRoot.getM3u8(), xmlRoot.getDir());
-							// 下载
-							// tableItem.getProgressBarBox().download();
 							tableView.getItems().add(tableItem);
+							// 下载
+							tableItem.getDownloadColumn().localDownload(xmlRoot);
 						}
 					} else {
 						CommonUtility.alert("文件格式不对!", AlertType.ERROR);
@@ -347,7 +347,7 @@ public class App extends Application {
 					// 启动下载
 					TableItem tableItem = new TableItem(downloadUrl, dir);
 					tableView.getItems().add(tableItem);
-					tableItem.getDownloadColumn().download2();
+					tableItem.getDownloadColumn().download();
 				}
 			}
 		});

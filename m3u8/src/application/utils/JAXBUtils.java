@@ -36,7 +36,7 @@ public class JAXBUtils {
 		}
 	}
 
-	public static XMLRoot read(File file) {
+	public static synchronized XMLRoot read(File file) {
 		try {
 			Unmarshaller unmarshaller = context.createUnmarshaller();
 			XMLRoot xmlRoot = (XMLRoot) unmarshaller.unmarshal(file);
@@ -48,7 +48,7 @@ public class JAXBUtils {
 
 	}
 
-	public static void insert(String fileType, EXTINF extinf) {
+	public static synchronized void insert(String fileType, EXTINF extinf) {
 		File file = new File(extinf.getDir() + File.separator + fileType);
 		XMLRoot root = read(file);
 		List<EXTINF> list = root.getList();
@@ -63,7 +63,7 @@ public class JAXBUtils {
 		update(file, root);
 	}
 
-	public static void delete(String fileType, EXTINF extinf) {
+	public static synchronized void delete(String fileType, EXTINF extinf) {
 		File file = new File(extinf.getDir() + File.separator + fileType);
 		XMLRoot root = read(file);
 		List<EXTINF> list = root.getList();
@@ -78,7 +78,7 @@ public class JAXBUtils {
 		update(file, root);
 	}
 
-	public static void update(File file, XMLRoot root) {
+	public static synchronized void update(File file, XMLRoot root) {
 
 		try {
 			Marshaller marshaller = context.createMarshaller();
@@ -94,7 +94,8 @@ public class JAXBUtils {
 
 	public static void main(String[] args) {
 		EXTINF extinf = new EXTINF("", "C:\\Users\\kyh\\Desktop\\m3u8\\zhentan\\02s\\02", 4);
-		insert(EXTINF_TYPE, extinf);
+//		insert(EXTINF_TYPE, extinf);
+		extinfExists("C:\\Users\\kyh\\Desktop\\m3u8\\zhentan\\02s\\02\\zzz");
 	}
 
 	public static void extinf(String dir, List<EXTINF> ts) {
@@ -107,7 +108,21 @@ public class JAXBUtils {
 		update(new File(dir + File.separator + EXTINF_TYPE), root);
 	}
 
-	public static void error(EXTINF data) {
+	public static boolean extinfExists(String dir) {
+		File file = new File(dir + File.separator + EXTINF_TYPE);
+		if (file.exists()) {
+			return true;
+		}
+		return false;
+	}
+
+	public static XMLRoot readExtinf(String dir) {
+		File file = new File(dir + File.separator + EXTINF_TYPE);
+		XMLRoot xmlRoot = read(file);
+		return xmlRoot;
+	}
+
+	public static synchronized void error(EXTINF data) {
 
 		File errorFile = new File(data.getDir() + File.separator + ERROR_TYPE);
 		if (errorFile.exists()) {

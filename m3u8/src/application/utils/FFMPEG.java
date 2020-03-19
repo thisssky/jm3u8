@@ -9,10 +9,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-import application.component.FileSizeTask;
+import application.component.MergeTask;
 
 public class FFMPEG {
 
@@ -30,19 +32,24 @@ public class FFMPEG {
 
 				@Override
 				public void run() {
+					BufferedReader bufferedReader = null;
+					String line = "";
 					try {
-						while (this != null) {
-							while (this != null) {
-								int _ch = videoProcess.getInputStream().read();
-								if (_ch == -1) {
-									break;
-								} else {
-//									System.out.print((char) _ch);
-								}
-							}
+						// 将进程的输出流封装成缓冲读者对象
+						bufferedReader = new BufferedReader(new InputStreamReader(videoProcess.getInputStream()));
+						// 对缓冲读者对象进行每行循环
+						while ((line = bufferedReader.readLine()) != null) {
+//							System.out.println(line);
 						}
+
 					} catch (IOException e) {
 						e.printStackTrace();
+					} finally {
+						try {
+							bufferedReader.close();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 					}
 
 				}
@@ -51,18 +58,20 @@ public class FFMPEG {
 
 				@Override
 				public void run() {
+					BufferedReader bufferedReader = null;
+					String line = "";
 					try {
-						while (this != null) {
-							int _ch;
-							_ch = videoProcess.getErrorStream().read();
-							if (_ch == -1) {
-								break;
-							} else {
-								System.err.print((char) _ch);
-							}
+						bufferedReader = new BufferedReader(new InputStreamReader(videoProcess.getErrorStream()));
+						while ((line = bufferedReader.readLine()) != null) {
 						}
 					} catch (IOException e) {
 						e.printStackTrace();
+					} finally {
+						try {
+							bufferedReader.close();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 					}
 
 				}
@@ -96,14 +105,20 @@ public class FFMPEG {
 		return command;
 	}
 
+	@Deprecated
 	public static void merge(String dir) {
 //		String tsfilepath = tsfile(dir);
-		List<String> command = getFfmpegCommand(dir + File.separator + "ts.txt", dir + File.separator + "out.mp4");
+		String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+		List<String> command = getFfmpegCommand(dir + File.separator + M3U8.TS_FILE,
+				dir + File.separator + date + ".mp4");
 		process(command);
 	}
 
-	public static void merge(String dir, FileSizeTask task) {
-		List<String> command = getFfmpegCommand(dir + File.separator + "ts.txt", dir + File.separator + "out.mp4");
+	public static void merge(String dir, MergeTask task) {
+		String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+
+		List<String> command = getFfmpegCommand(dir + File.separator + M3U8.TS_FILE,
+				dir + File.separator + date + ".mp4");
 
 		try {
 			Process videoProcess = new ProcessBuilder(command).redirectErrorStream(true).start();
@@ -320,10 +335,43 @@ public class FFMPEG {
 		}
 	}
 
-	public static void main(String[] args) {
+	public static void thumb() {
+//	String ssString = "ffmpeg -i input.flv -vf fps=1 out%d.png";
+		List<String> command = new ArrayList<>();
+		command.add("ffmpeg");
+		command.add("-i");
+		command.add("C:\\Users\\kyh\\Desktop\\m3u8\\aj\\test\\out.mp4");
+		command.add("-s 350x240");
+		command.add("-vf");
+		command.add("fps=1");
+		command.add("C:\\Users\\kyh\\Desktop\\m3u8\\aj\\test\\" + "out%06d.png");
+		process(command);
+	}
 
+	public static void framesthumb() {
+//	ffmpeg -i input.flv -ss 00:00:14.435 -vframes 1 out.png
+		List<String> command = new ArrayList<>();
+		command.add("ffmpeg");
+		command.add("-i");
+		command.add("C:\\Users\\kyh\\Desktop\\m3u8\\aj\\test\\out.mp4");
+		command.add("-y");
+		command.add("-s");
+		command.add("350x240");
+		command.add("-f");
+		command.add("image2");
+		command.add("-ss");
+		command.add("30");
+		command.add("-vframes");
+		command.add("1");
+		command.add("C:\\Users\\kyh\\Desktop\\m3u8\\aj\\test\\" + "out.png");
+		process(command);
+
+	}
+
+	public static void main(String[] args) {
+		framesthumb();
 //		merge("C:\\Users\\kyh\\Desktop\\m3u8\\xxx\\encrypted");
-		merge("C:\\Users\\kyh\\Desktop\\m3u8\\zhentan\\02s\\08");
+//		merge("C:\\Users\\kyh\\Desktop\\m3u8\\zhentan\\02s\\08");
 
 //		change();
 //		decryptedMerge();

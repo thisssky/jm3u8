@@ -55,15 +55,14 @@ public class MergeColumn extends AnchorPane {
 
 			@Override
 			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-//				System.out.println("ob:" + observable.getValue() + ",old:" + oldValue + ",new:" + newValue);
-				int l = Integer.valueOf(newValue);
+				double l = Double.valueOf(newValue);
 				String text = "";
 				if (l / 1024 < 1) {
-					text = l + "KB";
+					text = (int) l + "KB";
 				} else if (l / 1024 > 1 && l / (1024 * 1024) < 1) {
-					text = (l / 1024) + "MB";
+					text = (int) l / 1024 + "MB";
 				} else if (l / (1024 * 1024) > 1 && l / (1024 * 1024 * 1024) < 1) {
-					text = String.format("%.1fGB", (double) l / (1024 * 1024));
+					text = String.format("%.1fGB", l / (1024 * 1024));
 				}
 
 				label.setText(text);

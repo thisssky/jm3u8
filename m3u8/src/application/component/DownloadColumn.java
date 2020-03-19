@@ -1,10 +1,15 @@
 package application.component;
 
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import application.dto.EXTINF;
+import application.dto.XMLRoot;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Service;
@@ -52,7 +57,6 @@ public class DownloadColumn extends AnchorPane {
 	}
 
 	/** 下载 */
-
 	public void download() {
 
 		service = new Service<Integer>() {
@@ -65,8 +69,6 @@ public class DownloadColumn extends AnchorPane {
 		service.progressProperty().addListener(new ChangeListener<Number>() {
 			@Override
 			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-//				System.out.println("ob:" + observable.getValue().doubleValue() + ",old:" + oldValue.doubleValue()
-//						+ ",new:" + newValue.doubleValue());
 				progressBar.setProgress(newValue.doubleValue());
 				// 去更新label值
 				label.setText(String.format("%.2f%%", newValue.doubleValue() * 100));
@@ -75,8 +77,50 @@ public class DownloadColumn extends AnchorPane {
 		service.start();
 	}
 
+	/** 本地文件下载 */
+	public void localDownload(XMLRoot xmlRoot) {
+		progressBar.setProgress(-1);
+		// flag progress, remain, max
+		List<EXTINF> list = xmlRoot.getList();
+		File file = new File(dir);
+		String[] ts = file.list(new FilenameFilter() {
+
+			@Override
+			public boolean accept(File file, String name) {
+				if (name.endsWith(".ts")) {
+					return true;
+				}
+				return false;
+			}
+		});
+		if (ts.length == list.size()) {
+			progressBar.setProgress(1);
+			label.setText("100.00%");
+		} else {
+
+			flag.set(true);
+			progress.set(ts.length);
+			Iterator<EXTINF> iterator = list.iterator();
+			while (iterator.hasNext()) {
+				EXTINF extinf = iterator.next();
+				for (int i = 0, len = ts.length; i < len; i++) {
+					if (ts[i].equals(extinf.getIndex() + "-" + extinf.getTsName())) {
+						iterator.remove();
+						break;
+					}
+
+				}
+
+			}
+			remain.addAll(list);
+			max.set(xmlRoot.getTotal());
+
+			download();
+		}
+	}
+
 	/** 暂停下载 */
-	public void supend() {
+	public void suspend() {
 		flag.set(false);
 
 	}
@@ -84,25 +128,7 @@ public class DownloadColumn extends AnchorPane {
 	/** 重新下载 */
 	public void resume() {
 		flag.set(true);
-
-		service = new Service<Integer>() {
-			@Override
-			protected Task<Integer> createTask() {
-				DownloadTask task = new DownloadTask(m3u8, dir, flag, progress, remain, max);
-				return task;
-			};
-		};
-		service.progressProperty().addListener(new ChangeListener<Number>() {
-			@Override
-			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-//				System.out.println("ob:" + observable.getValue().doubleValue() + ",old:" + oldValue.doubleValue()
-//						+ ",new:" + newValue.doubleValue());
-				progressBar.setProgress(newValue.doubleValue());
-				// 去更新label值
-				label.setText(String.format("%.2f%%", newValue.doubleValue() * 100));
-			}
-		});
-		service.start();
+		download();
 	}
 
 }
