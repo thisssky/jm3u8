@@ -1,4 +1,4 @@
-package application.component;
+package application.remain;
 
 import application.dto.EXTINF;
 import javafx.collections.ObservableList;

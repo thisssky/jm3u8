@@ -1,4 +1,4 @@
-package application.component;
+package application.remain;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -49,7 +49,7 @@ public class ProgressBarTask extends Task<Integer> {
 	}
 
 	public void queueDownload(ConcurrentLinkedQueue<EXTINF> queue) {
-		executorService.execute(new QueueRunnable(this, queue, atomicInteger, size));
+//		executorService.execute(new QueueRunnable(this, queue, atomicInteger, size));
 	}
 
 	public void listDownlaod(int i) {

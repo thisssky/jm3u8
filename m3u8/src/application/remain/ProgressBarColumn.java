@@ -1,5 +1,6 @@
-package application.component;
+package application.remain;
 
+import application.component.MergeTask;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Service;

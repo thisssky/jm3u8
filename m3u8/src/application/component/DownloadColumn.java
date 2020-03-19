@@ -1,5 +1,10 @@
 package application.component;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import application.dto.EXTINF;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Service;
@@ -19,6 +24,10 @@ public class DownloadColumn extends AnchorPane {
 	private ProgressBar progressBar;
 	private Label label;
 	private Service<Integer> service;
+	private AtomicInteger progress = new AtomicInteger(0);
+	private AtomicInteger max = new AtomicInteger(0);
+	private AtomicBoolean flag = new AtomicBoolean(false);
+	private ConcurrentLinkedQueue<EXTINF> remain = new ConcurrentLinkedQueue<EXTINF>();
 
 	public DownloadColumn(String m3u8, String dir) {
 		this.m3u8 = m3u8;
@@ -43,13 +52,14 @@ public class DownloadColumn extends AnchorPane {
 	}
 
 	/** 下载 */
-	public void download() {
-		service = new Service<Integer>() {
 
+	public void download() {
+
+		service = new Service<Integer>() {
 			@Override
 			protected Task<Integer> createTask() {
-				ProgressBarTask tasks = new ProgressBarTask(m3u8, dir);
-				return tasks;
+				DownloadTask task = new DownloadTask(m3u8, dir, flag, progress, remain, max);
+				return task;
 			};
 		};
 		service.progressProperty().addListener(new ChangeListener<Number>() {
@@ -65,19 +75,34 @@ public class DownloadColumn extends AnchorPane {
 		service.start();
 	}
 
-	public void download2() {
-	}
-
 	/** 暂停下载 */
 	public void supend() {
-		System.out.println("暂停:" + dir);
+		flag.set(false);
 
 	}
 
 	/** 重新下载 */
 	public void resume() {
-		System.out.println("重新下载:" + dir);
+		flag.set(true);
 
+		service = new Service<Integer>() {
+			@Override
+			protected Task<Integer> createTask() {
+				DownloadTask task = new DownloadTask(m3u8, dir, flag, progress, remain, max);
+				return task;
+			};
+		};
+		service.progressProperty().addListener(new ChangeListener<Number>() {
+			@Override
+			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+//				System.out.println("ob:" + observable.getValue().doubleValue() + ",old:" + oldValue.doubleValue()
+//						+ ",new:" + newValue.doubleValue());
+				progressBar.setProgress(newValue.doubleValue());
+				// 去更新label值
+				label.setText(String.format("%.2f%%", newValue.doubleValue() * 100));
+			}
+		});
+		service.start();
 	}
 
 }
