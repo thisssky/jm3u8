@@ -37,11 +37,8 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -71,7 +68,10 @@ public class App extends Application {
 
 			@Override
 			public void handle(WindowEvent event) {
-				System.exit(0);
+				ObservableList<TableItem> items = tableView.getItems();
+				for (TableItem item : items) {
+					item.getDownloadColumn().suspend();
+				}
 			}
 		});
 		this.primaryStage = primaryStage;
@@ -83,15 +83,15 @@ public class App extends Application {
 
 		root = new BorderPane();
 
-		Pane leftRegion = new Pane();
-		leftRegion.setPrefWidth(width * 0.2);
-		leftRegion.setMinWidth(width * 0.2);
-		leftRegion.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, null, null)));
-		root.setLeft(leftRegion);
+//		Pane leftRegion = new Pane();
+//		leftRegion.setPrefWidth(width * 0.2);
+//		leftRegion.setMinWidth(width * 0.2);
+//		leftRegion.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, null, null)));
+//		root.setLeft(leftRegion);
 
 		rightBox = new BorderPane();
-		rightBox.setPrefWidth(width * 0.8);
-		rightBox.setMinWidth(width * 0.8);
+		rightBox.setPrefWidth(width);
+		rightBox.setMinWidth(width);
 		root.setCenter(rightBox);
 
 		initTop();

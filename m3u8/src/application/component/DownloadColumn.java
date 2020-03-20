@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import application.dto.EXTINF;
 import application.dto.XMLRoot;
+import application.utils.JAXBUtils;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Service;
@@ -127,8 +128,8 @@ public class DownloadColumn extends AnchorPane {
 
 	/** 重新下载 */
 	public void resume() {
-		flag.set(true);
-		download();
+		XMLRoot xmlRoot = JAXBUtils.read(new File(dir + File.separator + JAXBUtils.EXTINF_TYPE));
+		localDownload(xmlRoot);
 	}
 
 }

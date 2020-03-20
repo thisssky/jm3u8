@@ -22,24 +22,18 @@ public class FFMPEG {
 	 * @param command
 	 * @throws Exception
 	 */
-	private static boolean process(List<String> command) {
+	private static void process(List<String> command) {
 		try {
-			if (null == command || command.size() == 0) {
-				return false;
-			}
 			Process videoProcess = new ProcessBuilder(command).redirectErrorStream(true).start();
-			Runnable target = new Runnable() {
+			Runnable inputRunnable = new Runnable() {
 
 				@Override
 				public void run() {
-					BufferedReader bufferedReader = null;
+					BufferedReader bufferedReader = new BufferedReader(
+							new InputStreamReader(videoProcess.getInputStream()));
 					String line = "";
 					try {
-						// 将进程的输出流封装成缓冲读者对象
-						bufferedReader = new BufferedReader(new InputStreamReader(videoProcess.getInputStream()));
-						// 对缓冲读者对象进行每行循环
 						while ((line = bufferedReader.readLine()) != null) {
-//							System.out.println(line);
 						}
 
 					} catch (IOException e) {
@@ -54,14 +48,14 @@ public class FFMPEG {
 
 				}
 			};
-			Runnable target2 = new Runnable() {
+			Runnable errorRunnable = new Runnable() {
 
 				@Override
 				public void run() {
-					BufferedReader bufferedReader = null;
+					BufferedReader bufferedReader = new BufferedReader(
+							new InputStreamReader(videoProcess.getErrorStream()));
 					String line = "";
 					try {
-						bufferedReader = new BufferedReader(new InputStreamReader(videoProcess.getErrorStream()));
 						while ((line = bufferedReader.readLine()) != null) {
 						}
 					} catch (IOException e) {
@@ -76,22 +70,23 @@ public class FFMPEG {
 
 				}
 			};
-			new Thread(target).start();
-			new Thread(target2).start();
-			int exitcode = videoProcess.waitFor();
-			if (exitcode == 1) {
-				return false;
-			}
-			return true;
+			new Thread(inputRunnable).start();
+			new Thread(errorRunnable).start();
+			videoProcess.waitFor();
+			videoProcess.destroy();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return false;
 	}
 
-	private static List<String> getFfmpegCommand(String tsfilepath, String out) {
+	/**
+	 * @command ffmpeg -f concat -safe 0 -i ts.txt -c copy out.mp4
+	 * @param tsfilepath
+	 * @param out
+	 * @return
+	 */
+	private static List<String> getTSCommand(String tsfilepath, String out) {
 		List<String> command = new ArrayList<>();
-		// ffmpeg -f concat -safe 0 -i filelist.txt -c copy output.mp4
 		command.add("ffmpeg");
 		command.add("-f");
 		command.add("concat");
@@ -105,34 +100,73 @@ public class FFMPEG {
 		return command;
 	}
 
-	@Deprecated
-	public static void merge(String dir) {
-//		String tsfilepath = tsfile(dir);
-		String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-		List<String> command = getFfmpegCommand(dir + File.separator + M3U8.TS_FILE,
-				dir + File.separator + date + ".mp4");
-		process(command);
+	/**
+	 * @command ffmpeg -allowed_extensions ALL -i cindex.m3u8 -c copy new.mp4
+	 * @info
+	 *       <ul>
+	 *       <li>ffmpeg -allowed_extensions ALL -i cindex.m3u8 -c copy new.mp4</li>
+	 *       <li>1.当使用本地的ts和key文件时，m3u8的路径格式是： 1、不需要加file:///前缀，直接用路径就可以</li>
+	 *       <li>2.key文件必须是左斜杠/ , ts文件用左斜杠 / 或者 右斜杠 \ 都可以</li>
+	 *       <li>http://www.520dd.top/?m=vod-play-id-16086-src-1-num-1.html</li>
+	 *       <li>https://video.lllwo2o.com:8091/20180615/DWT6HJU129/index.m3u8</li>
+	 *       <li>&nbsp;&nbsp;#EXTM3U</li>
+	 *       <li>
+	 *       &nbsp;&nbsp;#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=650000,RESOLUTION=720x480
+	 *       </li>
+	 *       <li>&nbsp;&nbsp;650kb/hls/index.m3u8</li>
+	 *       <li>
+	 *       https://video.lllwo2o.com:8091/20180615/DWT6HJU129/650kb/hls/index.m3u8
+	 *       </li>
+	 *       <li>&nbsp;&nbsp;#EXTM3U #EXT-X-VERSION:3 #EXT-X-TARGETDURATION:2</li>
+	 *       <li>&nbsp;&nbsp;#EXT-X-MEDIA-SEQUENCE:0
+	 *       #EXT-X-KEY:METHOD=AES-128,URI="key.key"</li>
+	 *       <li>&nbsp;&nbsp;#EXTINF:1.668333, opiMscP5470000.ts</li>
+	 *       <li>
+	 *       https://video.lllwo2o.com:8091/20180615/DWT6HJU129/650kb/hls/key.key
+	 *       </li>
+	 *       <li>782e53aad9e88999</li>
+	 *       </ul>
+	 * @return
+	 */
+	public static List<String> getCIndexCommand(String cindex, String out) {
+		List<String> command = new ArrayList<>();
+		command.add("ffmpeg");
+		command.add("-allowed_extensions");
+		command.add("ALL");
+		command.add("-i");
+//		command.add("C:\\Users\\kyh\\Desktop\\m3u8\\xxx\\encrypted\\cindex.m3u8");
+		command.add(cindex);
+		command.add("-c");
+		command.add("copy");
+//		command.add("C:\\Users\\kyh\\Desktop\\m3u8\\xxx\\encrypted\\out.mp4");
+		command.add(out);
+		return command;
 	}
 
-	public static void merge(String dir, MergeTask task) {
-		String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+	public static boolean isEncrypted(String dir) {
+		File file = new File(dir + File.separator + "cindex.m3u8");
+		if (file.exists()) {
+			return true;
+		}
+		return false;
 
-		List<String> command = getFfmpegCommand(dir + File.separator + M3U8.TS_FILE,
-				dir + File.separator + date + ".mp4");
+	}
+
+	public static void processMerge(List<String> command, MergeTask task) {
 
 		try {
 			Process videoProcess = new ProcessBuilder(command).redirectErrorStream(true).start();
-			Runnable target = new Runnable() {
+			Runnable inputRunnable = new Runnable() {
 
 				@Override
 				public void run() {
-					BufferedReader br = null;
+					BufferedReader bufferedReader = new BufferedReader(
+							new InputStreamReader(videoProcess.getInputStream()));
 					try {
 						// 将进程的输出流封装成缓冲读者对象
-						br = new BufferedReader(new InputStreamReader(videoProcess.getInputStream()));
 
 						// 对缓冲读者对象进行每行循环
-						for (String line = br.readLine(); line != null; line = br.readLine()) {
+						for (String line = bufferedReader.readLine(); line != null; line = bufferedReader.readLine()) {
 							if (line.indexOf("size=") > -1) {
 								String substring = line.substring(line.indexOf("size=") + 5, line.indexOf("time="));
 								substring = substring.trim();
@@ -142,12 +176,11 @@ public class FFMPEG {
 						}
 						// 通知完成
 						task.done();
-						br.close();// 关闭进程的输出流
 					} catch (IOException e) {
 						e.printStackTrace();
 					} finally {
 						try {
-							br.close();
+							bufferedReader.close();
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -155,32 +188,45 @@ public class FFMPEG {
 
 				}
 			};
-			Runnable target2 = new Runnable() {
+			Runnable errorRunnable = new Runnable() {
 
 				@Override
 				public void run() {
+					BufferedReader bufferedReader = new BufferedReader(
+							new InputStreamReader(videoProcess.getErrorStream()));
+					String line = "";
 					try {
-						while (this != null) {
-							int read = videoProcess.getErrorStream().read();
-							if (read == -1) {
-								break;
-							} else {
-//								System.err.print((char) _ch);
-							}
+						while ((line = bufferedReader.readLine()) != null) {
 						}
 					} catch (IOException e) {
 						e.printStackTrace();
+					} finally {
+						try {
+							bufferedReader.close();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 					}
-
 				}
 			};
-			new Thread(target).start();
-			new Thread(target2).start();
+			new Thread(inputRunnable).start();
+			new Thread(errorRunnable).start();
 			videoProcess.waitFor();
 			videoProcess.destroy();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static void merge(String dir, MergeTask task) {
+		String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+		List<String> command;
+		if (isEncrypted(dir)) {
+			command = getCIndexCommand(dir + File.separator + "cindex.m3u8", dir + File.separator + date + ".mp4");
+		} else {
+			command = getTSCommand(dir + File.separator + M3U8.TS_FILE, dir + File.separator + date + ".mp4");
+		}
+		processMerge(command, task);
 	}
 
 	public static void multiDownload(String m3u8, String dir) {
@@ -284,7 +330,7 @@ public class FFMPEG {
 //			https://video.lllwo2o.com:8091/20180615/DWT6HJU129/650kb/hls/key.key
 //				782e53aad9e88999
 		List<String> command = new ArrayList<>();
-		// ffmpeg -f concat -safe 0 -i filelist.txt -c copy output.mp4
+		// ffmpeg -f concat -safe 0 -i cindex.m3u8 -c copy output.mp4
 		command.add("ffmpeg");
 		command.add("-allowed_extensions");
 		command.add("ALL");

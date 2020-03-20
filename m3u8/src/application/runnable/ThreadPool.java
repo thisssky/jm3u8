@@ -5,7 +5,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class ThreadPool {
-	public static ThreadPoolExecutor executor;
+	private static ThreadPoolExecutor executor;
 	private static int core;
 	static {
 		core = Runtime.getRuntime().availableProcessors();
