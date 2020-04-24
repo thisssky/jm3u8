@@ -1,7 +1,13 @@
 package application;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import application.component.ContextMenuTableRow;
 import application.component.DirTableCell;
@@ -12,6 +18,7 @@ import application.dto.XMLRoot;
 import application.utils.CommonUtility;
 import application.utils.JAXBUtils;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -37,8 +44,11 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -90,15 +100,12 @@ public class App extends Application {
 //		root.setLeft(leftRegion);
 
 		rightBox = new BorderPane();
-		rightBox.setPrefWidth(width);
-		rightBox.setMinWidth(width);
 		root.setCenter(rightBox);
 
 		initTop();
 		initTableView();
 		setOnAction();
-
-		Scene scene = new Scene(root, width, height, Color.WHITE);
+		Scene scene = new Scene(root);
 		primaryStage.setScene(scene);
 		primaryStage.show();
 	}
@@ -129,7 +136,9 @@ public class App extends Application {
 		dirTextField.setPrefWidth(310);
 		dirTextField.setPrefHeight(25);
 		GridPane.setMargin(dirTextField, new Insets(5, 5, 5, 5));
-		dirTextField.setTooltip(new Tooltip("双击、或按Enter键选择目录"));
+		Tooltip tooltip = new Tooltip("双击、或按Enter键选择目录");
+		tooltip.setFont(Font.font(18));
+		dirTextField.setTooltip(tooltip);
 		topGridPane.add(dirTextField, 1, 1);
 
 		downloadButton = new Button("下载");
@@ -137,6 +146,55 @@ public class App extends Application {
 		downloadButton.setPrefWidth(60);
 		GridPane.setMargin(downloadButton, new Insets(0, 5, 0, 0));
 		topGridPane.add(downloadButton, 2, 0, 1, 2);
+
+		topGridPane.setOnDragEntered(new EventHandler<DragEvent>() {
+
+			@Override
+			public void handle(DragEvent event) {
+				List<File> files = event.getDragboard().getFiles();
+				if (null == dirTextField.getText() || "".equals(dirTextField.getText())) {
+					CommonUtility.alert("请选择保存路径!", AlertType.ERROR);
+				} else {
+					BufferedReader bufferedReader = null;
+					try {
+						for (int i = 0; i < files.size(); i++) {
+							File file = files.get(i);
+							if (file.getName().equals("m3u8.txt")) {
+								FileReader fileReader = new FileReader(file);
+								bufferedReader = new BufferedReader(fileReader);
+								Stream<String> lines = bufferedReader.lines();
+								lines.forEach(item -> {
+									System.out.println(item);
+
+									String dir = dirTextField.getText() + File.separator + fileReader.hashCode() + "-"
+											+ Math.abs(item.hashCode());
+									File file2 = new File(dir);
+									if (file2.exists()) {
+										dir += "-re";
+									}
+									// 启动下载
+									TableItem tableItem = new TableItem(item, dir);
+									tableView.getItems().add(tableItem);
+									tableItem.getDownloadColumn().download();
+								});
+							} else {
+								CommonUtility.alert("请使用m3u8.txt资源文件!", AlertType.ERROR);
+							}
+						}
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					} finally {
+						try {
+							bufferedReader.close();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+
+				}
+
+			}
+		});
 	}
 
 	private void initTableView() {
@@ -193,7 +251,7 @@ public class App extends Application {
 		});
 
 		TableColumn<TableItem, String> dirColumn = new TableColumn<TableItem, String>("保存路径");
-		dirColumn.setMinWidth(40);
+		dirColumn.setMinWidth(200);
 		dirColumn.setCellFactory(new Callback<TableColumn<TableItem, String>, TableCell<TableItem, String>>() {
 
 			@Override
@@ -218,17 +276,17 @@ public class App extends Application {
 
 		TableColumn<TableItem, CheckBox> mergeColumn = new TableColumn<TableItem, CheckBox>("合并");
 		mergeColumn.setSortable(false);
-		mergeColumn.setPrefWidth(30);
-		mergeColumn.setMinWidth(30);
-		mergeColumn.setMaxWidth(30);
+		mergeColumn.setPrefWidth(36);
+		mergeColumn.setMinWidth(36);
+		mergeColumn.setMaxWidth(36);
 		mergeColumn.setStyle("-fx-alignment:center;");
 		mergeColumn.setCellValueFactory(new PropertyValueFactory<TableItem, CheckBox>("mergeCheckBox"));
 
 		TableColumn<TableItem, Button> mergeOptColumn = new TableColumn<TableItem, Button>("操作");
 		mergeOptColumn.setSortable(false);
-		mergeOptColumn.setPrefWidth(46);
-		mergeOptColumn.setMinWidth(46);
-		mergeOptColumn.setMaxWidth(46);
+		mergeOptColumn.setPrefWidth(58);
+		mergeOptColumn.setMinWidth(58);
+		mergeOptColumn.setMaxWidth(58);
 		mergeOptColumn.setCellValueFactory(new PropertyValueFactory<TableItem, Button>("mergeButton"));
 
 		tableView.setRowFactory(new Callback<TableView<TableItem>, TableRow<TableItem>>() {
