@@ -116,6 +116,8 @@ public class App extends Application {
 		rightBox.setTop(topGridPane);
 
 		Label urlLabel = new Label("下载链接");
+		urlLabel.setPrefWidth(52);
+		urlLabel.setMinWidth(52);
 		GridPane.setHalignment(urlLabel, HPos.RIGHT);
 		GridPane.setMargin(urlLabel, new Insets(5, 0, 0, 5));
 		topGridPane.add(urlLabel, 0, 0);
@@ -144,9 +146,11 @@ public class App extends Application {
 		downloadButton = new Button("下载");
 		downloadButton.setPrefHeight(60);
 		downloadButton.setPrefWidth(60);
+		downloadButton.setMinWidth(60);
+
 		GridPane.setMargin(downloadButton, new Insets(0, 5, 0, 0));
 		topGridPane.add(downloadButton, 2, 0, 1, 2);
-
+		
 		topGridPane.setOnDragEntered(new EventHandler<DragEvent>() {
 
 			@Override
