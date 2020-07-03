@@ -27,15 +27,23 @@ public class DirTableCell extends TableCell<TableItem, String> {
 				if (event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2) {
 					TableItem item = (TableItem) getTableRow().getItem();
 					if (null != item) {
-						try {
-							File file = new File(item.getDir());
-							if (!file.isDirectory()) {
-								CommonUtility.alert("文件夹错误", AlertType.ERROR);
-							} else {
-								Desktop.getDesktop().open(file);
-							}
-						} catch (IOException e) {
-
+						File file = new File(item.getDir());
+						if (!file.isDirectory()) {
+							CommonUtility.alert("文件夹错误", AlertType.ERROR);
+						} else {
+							Runnable runnable = new Runnable() {
+								
+								@Override
+								public void run() {
+									try {
+										Desktop.getDesktop().open(file);
+									} catch (IOException e) {
+										e.printStackTrace();
+									}
+									
+								}
+							};
+							new Thread(runnable).start();
 						}
 					}
 				}
