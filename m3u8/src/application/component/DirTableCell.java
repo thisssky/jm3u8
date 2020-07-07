@@ -19,7 +19,7 @@ public class DirTableCell extends TableCell<TableItem, String> {
 
 	public DirTableCell() {
 		Tooltip tooltip = new Tooltip("双击打开文件夹");
-		tooltip.setFont(Font.font(18));
+		tooltip.setFont(Font.font(16));
 		setTooltip(tooltip);
 		this.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			@Override
@@ -29,7 +29,7 @@ public class DirTableCell extends TableCell<TableItem, String> {
 					if (null != item) {
 						File file = new File(item.getDir());
 						if (!file.isDirectory()) {
-							CommonUtility.alert("文件夹错误", AlertType.ERROR);
+							CommonUtility.alert("文件夹不存在!", AlertType.ERROR);
 						} else {
 							Runnable runnable = new Runnable() {
 								

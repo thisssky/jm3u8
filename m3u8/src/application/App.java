@@ -13,17 +13,22 @@ import application.component.ContextMenuTableRow;
 import application.component.DirTableCell;
 import application.component.DownloadColumn;
 import application.component.MergeColumn;
+import application.component.Toast;
+import application.dto.EXTINF;
 import application.dto.TableItem;
 import application.dto.XMLRoot;
 import application.utils.CommonUtility;
 import application.utils.JAXBUtils;
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Scene;
@@ -31,7 +36,11 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -64,9 +73,10 @@ public class App extends Application {
 	private TextField urlTextField;
 	private TextField dirTextField;
 	private Button downloadButton;
-	private TableView<TableItem> tableView;
 	private BorderPane root;
+	private ListView<String> leftBox;
 	private BorderPane rightBox;
+	private TableView<TableItem> tableView;
 
 	public static void main(String[] args) {
 		Application.launch(args);
@@ -93,21 +103,70 @@ public class App extends Application {
 
 		root = new BorderPane();
 
-//		Pane leftRegion = new Pane();
-//		leftRegion.setPrefWidth(width * 0.2);
-//		leftRegion.setMinWidth(width * 0.2);
-//		leftRegion.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, null, null)));
-//		root.setLeft(leftRegion);
+		initLeft();
 
 		rightBox = new BorderPane();
 		root.setCenter(rightBox);
+		root.setOnMouseMoved(new EventHandler<MouseEvent>() {
 
+			@Override
+			public void handle(MouseEvent event) {
+				double x = event.getX();
+				if (x < 50) {
+					System.out.println("root:"+x);
+					leftBox.setVisible(true);
+					leftBox.setPrefWidth(width*0.3);
+				}
+				
+			}
+		});
+		
 		initTop();
 		initTableView();
+		
 		setOnAction();
 		Scene scene = new Scene(root);
 		primaryStage.setScene(scene);
 		primaryStage.show();
+	}
+
+	private void initLeft() {
+
+		ObservableList<String> strList = FXCollections.observableArrayList();
+
+		for (int i = 0; i < 10; i++) {
+			EXTINF extinf = new EXTINF();
+			extinf.setIndex(i);
+			strList.add("/xxx/xxx/" + i);
+		}
+		leftBox = new ListView<String>(strList);
+		leftBox.setPrefWidth(width * 0.3);
+		leftBox.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, null, null)));
+
+		root.setLeft(leftBox);
+
+		leftBox.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+//		leftBox.getSelectionModel().selectIndices(1, 2);
+//		leftBox.getFocusModel().focus(0);
+		leftBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
+
+			@Override
+			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+
+				System.out.println(newValue);
+				Toast toast = new Toast(newValue);
+				toast.show();
+			}
+		});
+		leftBox.setOnMouseExited(new EventHandler<MouseEvent>() {
+			
+			@Override
+			public void handle(MouseEvent event) {
+				leftBox.setPrefWidth(0);
+				leftBox.setVisible(false);
+			}
+		});
 	}
 
 	private void initTop() {
@@ -129,7 +188,7 @@ public class App extends Application {
 		GridPane.setConstraints(urlTextField, 1, 0, 1, 1, HPos.LEFT, VPos.CENTER, Priority.ALWAYS, Priority.NEVER);
 		topGridPane.add(urlTextField, 1, 0);
 
-		Label dirLabel = new Label("保存路径");
+		Label dirLabel = new Label("保存目录");
 		GridPane.setMargin(dirLabel, new Insets(5, 0, 5, 5));
 		GridPane.setHalignment(dirLabel, HPos.RIGHT);
 		topGridPane.add(dirLabel, 0, 1);
@@ -139,7 +198,7 @@ public class App extends Application {
 		dirTextField.setPrefHeight(25);
 		GridPane.setMargin(dirTextField, new Insets(5, 5, 5, 5));
 		Tooltip tooltip = new Tooltip("双击、或按Enter键选择目录");
-		tooltip.setFont(Font.font(18));
+		tooltip.setFont(Font.font(16));
 		dirTextField.setTooltip(tooltip);
 		topGridPane.add(dirTextField, 1, 1);
 
@@ -150,7 +209,7 @@ public class App extends Application {
 
 		GridPane.setMargin(downloadButton, new Insets(0, 5, 0, 0));
 		topGridPane.add(downloadButton, 2, 0, 1, 2);
-		
+
 		topGridPane.setOnDragEntered(new EventHandler<DragEvent>() {
 
 			@Override
