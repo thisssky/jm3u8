@@ -5,7 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -28,7 +29,6 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Scene;
@@ -36,11 +36,9 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -57,7 +55,6 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -102,28 +99,13 @@ public class App extends Application {
 		icons.add(CommonUtility.getImage("title.png"));
 
 		root = new BorderPane();
-
-		initLeft();
-
 		rightBox = new BorderPane();
 		root.setCenter(rightBox);
-		root.setOnMouseMoved(new EventHandler<MouseEvent>() {
 
-			@Override
-			public void handle(MouseEvent event) {
-				double x = event.getX();
-				if (x < 50) {
-					System.out.println("root:"+x);
-					leftBox.setVisible(true);
-					leftBox.setPrefWidth(width*0.3);
-				}
-				
-			}
-		});
-		
+		// initLeft();
+
 		initTop();
 		initTableView();
-		
 		setOnAction();
 		Scene scene = new Scene(root);
 		primaryStage.setScene(scene);
@@ -131,6 +113,18 @@ public class App extends Application {
 	}
 
 	private void initLeft() {
+		root.setOnMouseMoved(new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent event) {
+				double x = event.getX();
+				if (x < 50) {
+					leftBox.setVisible(true);
+					leftBox.setPrefWidth(width * 0.3);
+				}
+
+			}
+		});
 
 		ObservableList<String> strList = FXCollections.observableArrayList();
 
@@ -153,14 +147,14 @@ public class App extends Application {
 
 			@Override
 			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-
-				System.out.println(newValue);
+				double px = primaryStage.getX() + (width * 0.3) / 2 - 18;
+				double py = primaryStage.getY() + height - 36 - 20;
 				Toast toast = new Toast(newValue);
-				toast.show();
+				toast.show(primaryStage, px, py);
 			}
 		});
 		leftBox.setOnMouseExited(new EventHandler<MouseEvent>() {
-			
+
 			@Override
 			public void handle(MouseEvent event) {
 				leftBox.setPrefWidth(0);
@@ -175,8 +169,8 @@ public class App extends Application {
 		rightBox.setTop(topGridPane);
 
 		Label urlLabel = new Label("下载链接");
-		urlLabel.setPrefWidth(52);
-		urlLabel.setMinWidth(52);
+		urlLabel.setPrefWidth(60);
+		urlLabel.setMinWidth(60);
 		GridPane.setHalignment(urlLabel, HPos.RIGHT);
 		GridPane.setMargin(urlLabel, new Insets(5, 0, 0, 5));
 		topGridPane.add(urlLabel, 0, 0);
@@ -189,6 +183,8 @@ public class App extends Application {
 		topGridPane.add(urlTextField, 1, 0);
 
 		Label dirLabel = new Label("保存目录");
+		dirLabel.setPrefWidth(60);
+		dirLabel.setMinWidth(60);
 		GridPane.setMargin(dirLabel, new Insets(5, 0, 5, 5));
 		GridPane.setHalignment(dirLabel, HPos.RIGHT);
 		topGridPane.add(dirLabel, 0, 1);
@@ -223,14 +219,13 @@ public class App extends Application {
 						for (int i = 0; i < files.size(); i++) {
 							File file = files.get(i);
 							if (file.getName().equals("m3u8.txt")) {
+								DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 								FileReader fileReader = new FileReader(file);
 								bufferedReader = new BufferedReader(fileReader);
 								Stream<String> lines = bufferedReader.lines();
 								lines.forEach(item -> {
-									System.out.println(item);
-
-									String dir = dirTextField.getText() + File.separator + fileReader.hashCode() + "-"
-											+ Math.abs(item.hashCode());
+									String format = formatter.format(LocalDateTime.now());
+									String dir = dirTextField.getText() + File.separator + format;
 									File file2 = new File(dir);
 									if (file2.exists()) {
 										dir += "-re";
