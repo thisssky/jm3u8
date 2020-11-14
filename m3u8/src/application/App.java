@@ -5,10 +5,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Stream;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import application.component.ContextMenuTableRow;
 import application.component.DirTableCell;
@@ -16,11 +20,13 @@ import application.component.DownloadColumn;
 import application.component.MergeColumn;
 import application.component.Toast;
 import application.dto.EXTINF;
+import application.dto.Message;
 import application.dto.TableItem;
 import application.dto.XMLRoot;
 import application.utils.CommonUtility;
 import application.utils.JAXBUtils;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -64,8 +70,6 @@ import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 
 public class App extends Application {
-	private int width = 800;
-	private int height = 500;
 	private Stage primaryStage;
 	private TextField urlTextField;
 	private TextField dirTextField;
@@ -92,8 +96,7 @@ public class App extends Application {
 			}
 		});
 		this.primaryStage = primaryStage;
-		width = CommonUtility.getDimensionWidth() / 2;
-		height = CommonUtility.getDimensionHeight() / 2;
+		primaryStage.setMinWidth(650);
 		primaryStage.setTitle("下载m3u8视频");
 		ObservableList<javafx.scene.image.Image> icons = primaryStage.getIcons();
 		icons.add(CommonUtility.getImage("title.png"));
@@ -102,14 +105,66 @@ public class App extends Application {
 		rightBox = new BorderPane();
 		root.setCenter(rightBox);
 
-		// initLeft();
-
+//		initLeft();
 		initTop();
 		initTableView();
 		setOnAction();
+		// 接收firefox插件的消息
+		receive();
 		Scene scene = new Scene(root);
 		primaryStage.setScene(scene);
 		primaryStage.show();
+	}
+
+	private static int getInt(byte[] bytes) {
+		return (bytes[3] << 24) & 0xff000000 | (bytes[2] << 16) & 0x00ff0000 | (bytes[1] << 8) & 0x0000ff00
+				| (bytes[0]) & 0x000000ff;
+	}
+
+	private void receive() {
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+
+				try {
+					while (true) {
+						byte[] messageLength = new byte[4];
+						System.in.read(messageLength);
+						// 读取消息大小
+						int size = getInt(messageLength);
+						if (size == 0) {
+							throw new InterruptedIOException("Blocked communication");
+						}
+
+						byte[] messageContent = new byte[size];
+						System.in.read(messageContent);
+
+						String string = new String(messageContent, StandardCharsets.UTF_8);
+						ObjectMapper mapper = new ObjectMapper();
+						Message message = mapper.readValue(string, Message.class);
+
+						DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
+						String ymdhms = formatter.format(LocalDateTime.now());
+						if (dirTextField.getText().trim().equals("")) {
+							Toast toast = new Toast("请填写下载路径!",3000);
+							Platform.runLater(new Runnable() {
+
+								@Override
+								public void run() {
+									toast.showBottom(primaryStage);
+								}
+							});
+						} else {
+							download(message.getUrl(), dirTextField.getText() + File.separator + ymdhms);
+						}
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+			}
+		}).start();
 	}
 
 	private void initLeft() {
@@ -120,7 +175,7 @@ public class App extends Application {
 				double x = event.getX();
 				if (x < 50) {
 					leftBox.setVisible(true);
-					leftBox.setPrefWidth(width * 0.3);
+					leftBox.setPrefWidth(200);
 				}
 
 			}
@@ -131,10 +186,10 @@ public class App extends Application {
 		for (int i = 0; i < 10; i++) {
 			EXTINF extinf = new EXTINF();
 			extinf.setIndex(i);
-			strList.add("/xxx/xxx/" + i);
+			strList.add("/xxx/xxx/asdfasdfasdfasdfasdfasdfs" + i);
 		}
 		leftBox = new ListView<String>(strList);
-		leftBox.setPrefWidth(width * 0.3);
+		leftBox.setPrefWidth(200);
 		leftBox.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, null, null)));
 
 		root.setLeft(leftBox);
@@ -147,10 +202,8 @@ public class App extends Application {
 
 			@Override
 			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-				double px = primaryStage.getX() + (width * 0.3) / 2 - 18;
-				double py = primaryStage.getY() + height - 36 - 20;
 				Toast toast = new Toast(newValue);
-				toast.show(primaryStage, px, py);
+				toast.showBottom(primaryStage);
 			}
 		});
 		leftBox.setOnMouseExited(new EventHandler<MouseEvent>() {
@@ -225,7 +278,8 @@ public class App extends Application {
 								Stream<String> lines = bufferedReader.lines();
 								lines.forEach(item -> {
 									String format = formatter.format(LocalDateTime.now());
-									String dir = dirTextField.getText() + File.separator + format;
+									String dir = dirTextField.getText() + File.separator + format + "-"
+											+ Math.abs(item.hashCode());
 									File file2 = new File(dir);
 									if (file2.exists()) {
 										dir += "-re";
@@ -461,12 +515,41 @@ public class App extends Application {
 					urlAlert.show();
 				} else if (null != downloadUrl && !downloadUrl.isEmpty() && null != dir && !dir.isEmpty()) {
 					// 启动下载
-					TableItem tableItem = new TableItem(downloadUrl, dir);
-					tableView.getItems().add(tableItem);
-					tableItem.getDownloadColumn().download();
+					download(downloadUrl, dir);
 				}
 			}
 		});
+	}
+
+	public boolean exist(String url) {
+		ObservableList<TableItem> items = tableView.getItems();
+		boolean flag = false;
+		for (int i = 0, size = items.size(); i < size; i++) {
+			String m3u8 = items.get(i).getM3u8();
+			if (m3u8.equals(url)) {
+				flag = true;
+				break;
+			}
+		}
+		return flag;
+	}
+
+	public void download(String url, String dir) {
+		if (exist(url)) {
+			Toast toast = new Toast("已存在");
+			Platform.runLater(new Runnable() {
+
+				@Override
+				public void run() {
+					toast.showBottom(primaryStage);
+				}
+			});
+		} else {
+			TableItem tableItem = new TableItem(url, dir);
+			tableView.getItems().add(tableItem);
+			tableItem.getDownloadColumn().download();
+
+		}
 	}
 
 	@Deprecated

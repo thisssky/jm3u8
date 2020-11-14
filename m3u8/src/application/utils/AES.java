@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.security.spec.AlgorithmParameterSpec;
 
@@ -74,8 +75,6 @@ public class AES {
 			fileInputStream = new FileInputStream(file);
 			byte[] bf = new byte[16];
 			fileInputStream.read(bf, 0, bf.length);
-			String string = new String(bf);
-			System.out.println(string);
 			return bf;
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -145,11 +144,31 @@ public class AES {
 		}
 	}
 
+	public static void decryptDir(String dir) {
+		File file = new File(dir);
+		String[] list = file.list(new FilenameFilter() {
+
+			@Override
+			public boolean accept(File dir, String name) {
+				if (name.contains(".ts")) {
+					return true;
+				}
+				return false;
+			}
+		});
+		for (int i = 0, len = list.length; i < len; i++) {
+			decryptFile(dir + File.separator + list[i], dir + File.separator + list[i],
+					dir + File.separator + "key.key");
+			System.out.println(len-1-i);
+		}
+	}
+
 	public static void main(String[] args) {
 //		encryptFile();
-		String keyfile = "C:\\Users\\kyh\\Desktop\\m3u8\\xxx\\encrypted\\01\\key.key";
-		String infile = "C:\\Users\\kyh\\Desktop\\m3u8\\xxx\\encrypted\\01\\75-Ezg3PH6a.ts";
-		String outfile = "C:\\Users\\kyh\\Desktop\\m3u8\\xxx\\encrypted\\01\\75-Ezg3PH6a-decrypt.ts";
-		decryptFile(infile, outfile, keyfile);
+		String keyfile = "E:\\xxx\\5101\\20201111155629499\\key.key";
+		String infile = "E:\\xxx\\5101\\20201111155629499\\541-index541-copy.ts";
+		String outfile = "E:\\xxx\\5101\\20201111155629499\\541-index541-copy.ts";
+//		decryptFile(infile, outfile, keyfile);
+		decryptDir("E:\\xxx\\5101\\20201112001814089");
 	}
 }
