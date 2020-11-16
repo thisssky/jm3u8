@@ -38,7 +38,6 @@ public class DownloadTask extends Task<Integer> {
 			List<EXTINF> list = M3U8.ts(m3u8, dir);
 			remain.addAll(list);
 			max.set(list.size());
-			JAXBUtils.extinf(dir, list);
 			flag.set(true);
 		}
 

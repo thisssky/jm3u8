@@ -18,6 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import application.dto.EXTINF;
+import application.dto.XMLRoot;
 
 public class M3U8 {
 
@@ -58,6 +59,46 @@ public class M3U8 {
 			}
 		}
 
+		return list;
+	}
+
+	public static List<String> downloadIndex(String m3u8, String dir) {
+		List<String> list = index(m3u8);
+		String last = list.get(list.size() - 1);
+		while (!ENDLIST.equalsIgnoreCase(last)) {
+			// 如果不是#EXT-X-ENDLIST結尾还需继续
+			String prefix = m3u8.substring(0, m3u8.lastIndexOf("/") + 1);
+			if (last.startsWith("/")) {
+				m3u8 = prefix + last.substring(1);
+			} else {
+				m3u8 = prefix + last;
+			}
+			list = index(m3u8);
+			last = list.get(list.size() - 1);
+		}
+		File dirFile = new File(dir);
+		if (!dirFile.exists()) {
+			dirFile.mkdirs();
+		}
+
+		BufferedWriter indexWriter = null;
+		try {
+			indexWriter = new BufferedWriter(new FileWriter(dir + File.separator + "index.m3u8"));
+			for (int i = 0, len = list.size(); i < len; i++) {
+				indexWriter.write(list.get(i));
+				if (i < len - 1) {
+					indexWriter.newLine();
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				indexWriter.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		return list;
 	}
 
@@ -109,45 +150,22 @@ public class M3U8 {
 	}
 
 	public static void main(String[] args) {
-		String m3u8 = "https://s2s.baimi0517.com/common/maomi/mm_m3u8_online/zw_3G6RBPV8/hls/1/index.m3u8";
-		String dir = "E:\\xxx\\5101\\xxxxx";
-//		ts(m3u8, dir);
-		localIndex("E:\\xxx\\5101\\20201111214222004");
+		String dir = "E:\\xxx\\20201114223602297";
+		File file = new File(dir + File.separator + "extinf.xml");
+		XMLRoot xmlRoot = JAXBUtils.read(file);
+		String m3u8 = xmlRoot.getM3u8();
+		downloadIndex(m3u8, dir);
+		localIndex(dir);
 	}
 
 	public static List<EXTINF> ts(String m3u8, String dir) {
-		List<String> list = index(m3u8);
-		String last = list.get(list.size() - 1);
-		while (!ENDLIST.equalsIgnoreCase(last)) {
-			// 如果不是#EXT-X-ENDLIST結尾还需继续
-			String prefix = m3u8.substring(0, m3u8.lastIndexOf("/") + 1);
-			if (last.startsWith("/")) {
-				m3u8 = prefix + last.substring(1);
-			} else {
-				m3u8 = prefix + last;
-			}
-			list = index(m3u8);
-			last = list.get(list.size() - 1);
-		}
-
-		// 验证文件夹
-		File dirFile = new File(dir);
-		if (!dirFile.exists()) {
-			dirFile.mkdirs();
-		} else {
-			// 删除已有文件
-			String filePath = dir + File.separator + TS_FILE;
-			File file = new File(filePath);
-			file.delete();
-		}
-
-		// 处理ts序列
-
+		// index.m3u8
+		List<String> list = downloadIndex(m3u8, dir);
+		// 处理ts
 		ArrayList<EXTINF> tsList = new ArrayList<EXTINF>();
 		EXTINF extinf = null;
 		int index = 0;
 		boolean encrypted = false;
-
 		String m3u8Prefix = m3u8.substring(0, m3u8.lastIndexOf("/"));
 		String ts = "";
 		for (String data : list) {
@@ -179,13 +197,14 @@ public class M3U8 {
 				index++;
 			}
 		}
+		// ts.txt
+		writeTS(tsList);
+		// extinf.xml
+		JAXBUtils.extinf(dir, tsList);
 
 		if (encrypted) {
 			// 加密视频创建index.m3u8,uri修改成本地，extinf也修改成本地
 			writeCIndex(m3u8, list, dir);
-		} else {
-			// 写下ts文件
-			writeTS(tsList);
 		}
 		return tsList;
 	}

@@ -7,10 +7,14 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.security.spec.AlgorithmParameterSpec;
+import java.util.List;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+
+import application.dto.EXTINF;
+import application.dto.XMLRoot;
 
 /**
  * 
@@ -151,15 +155,16 @@ public class AES {
 			@Override
 			public boolean accept(File dir, String name) {
 				if (name.contains(".ts")) {
+//					if (Integer.valueOf(name.substring(0, name.indexOf("-"))) >= 5255)
 					return true;
 				}
 				return false;
 			}
 		});
 		for (int i = 0, len = list.length; i < len; i++) {
-			decryptFile(dir + File.separator + list[i], dir + File.separator + list[i],
-					dir + File.separator + "key.key");
-			System.out.println(len-1-i);
+//			decryptFile(dir + File.separator + list[i], dir + File.separator + list[i],
+//					dir + File.separator + "key.key");
+			System.out.println(list[i]);
 		}
 	}
 
@@ -169,6 +174,35 @@ public class AES {
 		String infile = "E:\\xxx\\5101\\20201111155629499\\541-index541-copy.ts";
 		String outfile = "E:\\xxx\\5101\\20201111155629499\\541-index541-copy.ts";
 //		decryptFile(infile, outfile, keyfile);
-		decryptDir("E:\\xxx\\5101\\20201112001814089");
+
+		String dir = "E:\\xxx\\20201114223655073";
+//		File file = new File(dir);
+//		String[] list = file.list(new FilenameFilter() {
+//
+//			@Override
+//			public boolean accept(File dir, String name) {
+//				if (name.contains(".ts")) {
+//					if (!name.startsWith("0") && !name.startsWith("1") ) {
+//						File file2 = new File(dir.getAbsolutePath()+File.separator+name);
+//						file2.delete();
+//						System.out.println(dir.getAbsolutePath()+File.separator+name);
+//					}
+//					return true;
+//				}
+//				return false;
+//			}
+//		});
+
+//		File file = new File(dir + File.separator + "extinf.xml");
+//		XMLRoot xmlRoot = JAXBUtils.read(file);
+//		String m3u8 = xmlRoot.getM3u8();
+//		M3U8.downloadIndex(m3u8, dir);
+//		List<EXTINF> list = xmlRoot.getList();
+//		for (EXTINF extinf : list) {
+//			decryptFile(dir + File.separator +extinf.getIndex()+"-" +extinf.getTsName(), dir + File.separator + +extinf.getIndex()+"-" +extinf.getTsName(),
+//					dir + File.separator + "key.key");
+//			System.out.println(extinf.getTsName());
+//			
+//		}
 	}
 }
