@@ -147,7 +147,7 @@ public class App extends Application {
 						DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 						String ymdhms = formatter.format(LocalDateTime.now());
 						if (dirTextField.getText().trim().equals("")) {
-							Toast toast = new Toast("请填写下载路径!",3000);
+							Toast toast = new Toast("请填写下载路径!", 3000);
 							Platform.runLater(new Runnable() {
 
 								@Override
@@ -265,7 +265,8 @@ public class App extends Application {
 			public void handle(DragEvent event) {
 				List<File> files = event.getDragboard().getFiles();
 				if (null == dirTextField.getText() || "".equals(dirTextField.getText())) {
-					CommonUtility.alert("请选择保存路径!", AlertType.ERROR);
+					Toast toast = new Toast("请选择保存路径!", 3000);
+					toast.showBottom(primaryStage);
 				} else {
 					BufferedReader bufferedReader = null;
 					try {
@@ -290,7 +291,8 @@ public class App extends Application {
 									tableItem.getDownloadColumn().download();
 								});
 							} else {
-								CommonUtility.alert("请使用m3u8.txt资源文件!", AlertType.ERROR);
+								Toast toast = new Toast("请使用m3u8.txt资源文件!", 3000);
+								toast.showBottom(primaryStage);
 							}
 						}
 					} catch (FileNotFoundException e) {
@@ -422,7 +424,8 @@ public class App extends Application {
 						for (TableItem tableItem : items) {
 							if (tableItem.getDir().equals(file.getParent())) {
 								flag = true;
-								CommonUtility.alert("已存在!", AlertType.ERROR);
+								Toast toast = new Toast("已存在!", 3000);
+								toast.showBottom(primaryStage);
 								break;
 							}
 						}
@@ -437,7 +440,8 @@ public class App extends Application {
 							tableItem.getDownloadColumn().localDownload(xmlRoot);
 						}
 					} else {
-						CommonUtility.alert("文件格式不对!", AlertType.ERROR);
+						Toast toast = new Toast("文件格式不对!", 3000);
+						toast.showBottom(primaryStage);
 					}
 				}
 
@@ -500,19 +504,11 @@ public class App extends Application {
 				String dir = dirTextField.getText();
 				Image image = CommonUtility.getImage("title.png");
 				if (null == downloadUrl || "".equals(downloadUrl.trim())) {
-					Alert urlAlert = new Alert(AlertType.ERROR);
-					Stage window = (Stage) urlAlert.getDialogPane().getScene().getWindow();
-					window.getIcons().add(image);
-					urlAlert.setHeaderText("下载链接不能为空!");
-					urlAlert.setTitle("提示");
-					urlAlert.show();
+					Toast toast = new Toast("下载链接不能为空!");
+					toast.showBottom(primaryStage);
 				} else if (null == dir || "".equals(dir.trim())) {
-					Alert urlAlert = new Alert(AlertType.ERROR);
-					Stage window = (Stage) urlAlert.getDialogPane().getScene().getWindow();
-					window.getIcons().add(image);
-					urlAlert.setHeaderText("保存路径不能为空!");
-					urlAlert.setTitle("提示");
-					urlAlert.show();
+					Toast toast = new Toast("保存路径不能为空!");
+					toast.showBottom(primaryStage);
 				} else if (null != downloadUrl && !downloadUrl.isEmpty() && null != dir && !dir.isEmpty()) {
 					// 启动下载
 					download(downloadUrl, dir);

@@ -5,10 +5,8 @@ import java.io.File;
 import java.io.IOException;
 
 import application.dto.TableItem;
-import application.utils.CommonUtility;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
@@ -29,7 +27,8 @@ public class DirTableCell extends TableCell<TableItem, String> {
 					if (null != item) {
 						File file = new File(item.getDir());
 						if (!file.isDirectory()) {
-							CommonUtility.alert("文件夹不存在!", AlertType.ERROR);
+							Toast toast = new Toast("文件夹不存在!", 3000);
+							toast.showBottom(getScene().getWindow());
 						} else {
 							Runnable runnable = new Runnable() {
 								
