@@ -38,8 +38,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -92,6 +90,12 @@ public class App extends Application {
 				ObservableList<TableItem> items = tableView.getItems();
 				for (TableItem item : items) {
 					item.getDownloadColumn().suspend();
+				}
+				// 通知firefox插件关闭了
+				try {
+					sendMessage("{\"type\":\"app\"}");
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
 			}
 		});
@@ -165,6 +169,21 @@ public class App extends Application {
 
 			}
 		}).start();
+	}
+
+	private void sendMessage(String message) throws IOException {
+		System.out.write(getBytes(message.length()));
+		System.out.write(message.getBytes(StandardCharsets.UTF_8));
+		System.out.flush();
+	}
+
+	private byte[] getBytes(int length) {
+		byte[] bytes = new byte[4];
+		bytes[0] = (byte) (length & 0xFF);
+		bytes[1] = (byte) ((length >> 8) & 0xFF);
+		bytes[2] = (byte) ((length >> 16) & 0xFF);
+		bytes[3] = (byte) ((length >> 24) & 0xFF);
+		return bytes;
 	}
 
 	private void initLeft() {
