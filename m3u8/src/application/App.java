@@ -42,6 +42,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -105,9 +108,25 @@ public class App extends Application {
 		ObservableList<javafx.scene.image.Image> icons = primaryStage.getIcons();
 		icons.add(CommonUtility.getImage("title.png"));
 
+		// 创建MenuBar
+		MenuBar menuBar = new MenuBar();
+		menuBar.setPadding(new Insets(0));
+//		menuBar.setStyle("-fx-background-color:red");
+
+		// 创建Menu
+		Menu fileMenu = new Menu("文件");
+		MenuItem open = new MenuItem("打开");
+		fileMenu.getItems().add(open);
+		Menu menu2 = new Menu("视图");
+		Menu menu3 = new Menu("o");
+
+		// Menu键入到MenuBar
+//		menuBar.getMenus().addAll(fileMenu, menu2, menu3);
+
 		root = new BorderPane();
 		rightBox = new BorderPane();
 		root.setCenter(rightBox);
+		root.setTop(menuBar);
 
 //		initLeft();
 		initTop();

@@ -224,7 +224,7 @@ public class FFMPEG {
 		if (isEncrypted(dir)) {
 			command = getCIndexCommand(dir + File.separator + "cindex.m3u8", dir + File.separator + date + ".mp4");
 		} else {
-			command = getTSCommand(dir + File.separator + M3U8.TS_FILE, dir + File.separator + date + ".mp4");
+			command = getTSCommand(dir + File.separator + M3U8.TS_TXT, dir + File.separator + date + ".mp4");
 		}
 		processMerge(command, task);
 	}
@@ -335,10 +335,10 @@ public class FFMPEG {
 		command.add("-allowed_extensions");
 		command.add("ALL");
 		command.add("-i");
-		command.add("C:\\Users\\kyh\\Desktop\\m3u8\\xxx\\encrypted\\cindex.m3u8");
+		command.add("C:\\Users\\zhouyu\\Desktop\\lxzc\\20211031231351137\\cindex.m3u8");
 		command.add("-c");
 		command.add("copy");
-		command.add("C:\\Users\\kyh\\Desktop\\m3u8\\xxx\\encrypted\\out.mp4");
+		command.add("C:\\Users\\zhouyu\\Desktop\\lxzc\\20211031231351137\\out.mp4");
 		process(command);
 	}
 
@@ -415,12 +415,12 @@ public class FFMPEG {
 	}
 
 	public static void main(String[] args) {
-		framesthumb();
+//		framesthumb();
 //		merge("C:\\Users\\kyh\\Desktop\\m3u8\\xxx\\encrypted");
 //		merge("C:\\Users\\kyh\\Desktop\\m3u8\\zhentan\\02s\\08");
 
 //		change();
-//		decryptedMerge();
+		decryptedMerge();
 //		cut();
 //		multiDownload("http://cdn-yong.bejingyongjiu.com/20200125/1913_7044abc9/index.m3u8",
 //				"C:\\Users\\kyh\\Desktop\\m3u8\\sssszsh\\11");

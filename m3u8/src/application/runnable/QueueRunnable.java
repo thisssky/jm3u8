@@ -7,12 +7,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.net.ssl.HttpsURLConnection;
+
 import application.component.DownloadTask;
 import application.dto.EXTINF;
+import application.utils.CommonUtility;
 import application.utils.JAXBUtils;
 
 public class QueueRunnable implements Runnable {
@@ -21,6 +25,8 @@ public class QueueRunnable implements Runnable {
 	private AtomicInteger progress;
 	private ConcurrentLinkedQueue<EXTINF> queue;
 	private int size;
+//	private SSLContext sc;
+//	SSLSocketFactory socketFactory;
 
 	public QueueRunnable(DownloadTask task, AtomicBoolean flag, AtomicInteger progress,
 			ConcurrentLinkedQueue<EXTINF> queue, int size) {
@@ -29,6 +35,36 @@ public class QueueRunnable implements Runnable {
 		this.progress = progress;
 		this.queue = queue;
 		this.size = size;
+
+//		try {
+//			SSLContext sc = SSLContext.getInstance("SSL", "SunJSSE");
+//			X509TrustManager x509TrustManager = new X509TrustManager() {
+//
+//				@Override
+//				public X509Certificate[] getAcceptedIssuers() {
+//					return new X509Certificate[] {};
+//				}
+//
+//				@Override
+//				public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+//
+//				}
+//
+//				@Override
+//				public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+//
+//				}
+//			};
+//			sc.init(null, new TrustManager[] { x509TrustManager }, new java.security.SecureRandom());
+//			SSLSocketFactory socketFactory = sc.getSocketFactory();
+//
+//		} catch (NoSuchAlgorithmException e) {
+//			e.printStackTrace();
+//		} catch (NoSuchProviderException e) {
+//			e.printStackTrace();
+//		} catch (KeyManagementException e) {
+//			e.printStackTrace();
+//		}
 	}
 
 	@Override
@@ -49,7 +85,13 @@ public class QueueRunnable implements Runnable {
 		String fileOutPath = extinf.getDir() + File.separator + extinf.getIndex() + "-" + extinf.getTsName();
 		try {
 			URL url = new URL(extinf.getTs());
-			bufferedInputStream = new BufferedInputStream(url.openStream());
+//			bufferedInputStream = new BufferedInputStream(url.openStream());
+			URLConnection openConnection = url.openConnection();
+			if (openConnection instanceof HttpsURLConnection) {
+				((HttpsURLConnection) openConnection).setSSLSocketFactory(CommonUtility.getSSLSocketFactory());
+
+			}
+			bufferedInputStream = new BufferedInputStream(openConnection.getInputStream());
 			bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(new File(fileOutPath)));
 			byte[] bytes = new byte[1024];
 			int length = 0;

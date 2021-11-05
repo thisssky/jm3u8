@@ -1,15 +1,22 @@
 package application.utils;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.security.spec.AlgorithmParameterSpec;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 
 import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -149,60 +156,165 @@ public class AES {
 	}
 
 	public static void decryptDir(String dir) {
-		File file = new File(dir);
-		String[] list = file.list(new FilenameFilter() {
 
-			@Override
-			public boolean accept(File dir, String name) {
-				if (name.contains(".ts")) {
-//					if (Integer.valueOf(name.substring(0, name.indexOf("-"))) >= 5255)
-					return true;
+		File file = new File(dir + File.separator + "extinf.xml");
+		XMLRoot xmlRoot = JAXBUtils.read(file);
+		List<EXTINF> list = xmlRoot.getList();
+		for (EXTINF extinf : list) {
+			decryptFile(dir + File.separator + extinf.getIndex() + "-" + extinf.getTsName(),
+					dir + File.separator + +extinf.getIndex() + "-" + extinf.getTsName(),
+					dir + File.separator + "key.key");
+			System.out.println(extinf.getDir() + "/" + extinf.getIndex() + "-" + extinf.getTsName() + "---"
+					+ (list.size() - extinf.getIndex() - 1));
+
+		}
+
+	}
+
+	public static void merge(String dir) {
+		String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+		List<String> command = new ArrayList<>();
+		command.add("ffmpeg");
+		command.add("-f");
+		command.add("concat");
+		command.add("-safe");
+		command.add("0");
+		command.add("-i");
+		command.add(dir + File.separator + M3U8.TS_TXT);
+		command.add("-c");
+		command.add("copy");
+		command.add(dir + File.separator + date + ".mp4");
+
+		try {
+			Process videoProcess = new ProcessBuilder(command).redirectErrorStream(true).start();
+			Runnable inputRunnable = new Runnable() {
+
+				@Override
+				public void run() {
+					BufferedReader bufferedReader = new BufferedReader(
+							new InputStreamReader(videoProcess.getInputStream()));
+					try {
+						// 将进程的输出流封装成缓冲读者对象
+
+					} finally {
+						try {
+							bufferedReader.close();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+
 				}
-				return false;
-			}
-		});
-		for (int i = 0, len = list.length; i < len; i++) {
-//			decryptFile(dir + File.separator + list[i], dir + File.separator + list[i],
-//					dir + File.separator + "key.key");
-			System.out.println(list[i]);
+			};
+			Runnable errorRunnable = new Runnable() {
+
+				@Override
+				public void run() {
+					BufferedReader bufferedReader = new BufferedReader(
+							new InputStreamReader(videoProcess.getErrorStream()));
+					String line = "";
+					try {
+						while ((line = bufferedReader.readLine()) != null) {
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					} finally {
+						try {
+							bufferedReader.close();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			};
+			new Thread(inputRunnable).start();
+			new Thread(errorRunnable).start();
+			videoProcess.waitFor();
+			videoProcess.destroy();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
+	public static String encrypt(final String secret, final String data) {
+
+
+        byte[] decodedKey = Base64.getDecoder().decode(secret);
+
+        try {
+            Cipher cipher = Cipher.getInstance("AES");
+            // rebuild key using SecretKeySpec
+            SecretKey originalKey = new SecretKeySpec(Arrays.copyOf(decodedKey, 16), "AES");
+            cipher.init(Cipher.ENCRYPT_MODE, originalKey);
+            byte[] cipherText = cipher.doFinal(data.getBytes("UTF-8"));
+            return Base64.getEncoder().encodeToString(cipherText);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Error occured while encrypting data", e);
+        }
+
+    }
+
+    public static String decrypt(final String secret,
+            final String encryptedString) {
+
+
+        byte[] decodedKey = Base64.getDecoder().decode(secret);
+
+        try {
+            Cipher cipher = Cipher.getInstance("AES");
+            // rebuild key using SecretKeySpec
+            SecretKey originalKey = new SecretKeySpec(Arrays.copyOf(decodedKey, 16), "AES");
+            cipher.init(Cipher.DECRYPT_MODE, originalKey);
+            byte[] cipherText = cipher.doFinal(Base64.getDecoder().decode(encryptedString));
+            return new String(cipherText);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Error occured while decrypting data", e);
+        }
+    }
 	public static void main(String[] args) {
-//		encryptFile();
-		String keyfile = "E:\\xxx\\5101\\20201111155629499\\key.key";
-		String infile = "E:\\xxx\\5101\\20201111155629499\\541-index541-copy.ts";
-		String outfile = "E:\\xxx\\5101\\20201111155629499\\541-index541-copy.ts";
-//		decryptFile(infile, outfile, keyfile);
-
-		String dir = "E:\\xxx\\20201114223655073";
-//		File file = new File(dir);
-//		String[] list = file.list(new FilenameFilter() {
+//		String rootS = "E:\\xxx\\d";
+//		File root = new File(rootS);
+//		String[] list = root.list();
+//		for (int i = 0; i < list.length; i++) {
+////			System.out.println(list[i]);
+//			File dirF = new File(rootS + File.separator + list[i]);
+//			String[] mp4 = dirF.list(new FilenameFilter() {
 //
-//			@Override
-//			public boolean accept(File dir, String name) {
-//				if (name.contains(".ts")) {
-//					if (!name.startsWith("0") && !name.startsWith("1") ) {
-//						File file2 = new File(dir.getAbsolutePath()+File.separator+name);
-//						file2.delete();
-//						System.out.println(dir.getAbsolutePath()+File.separator+name);
-//					}
-//					return true;
+//				@Override
+//				public boolean accept(File dir, String name) {
+//					if (name.contains(".mp4"))
+//						return true;
+//					return false;
 //				}
-//				return false;
+//			});
+//
+//			if (mp4.length == 0) {
+//				System.out.println(dirF.getAbsolutePath());
+//				merge(dirF.getAbsolutePath());
+//				System.err.println(dirF.getAbsolutePath());
 //			}
-//		});
-
-//		File file = new File(dir + File.separator + "extinf.xml");
-//		XMLRoot xmlRoot = JAXBUtils.read(file);
-//		String m3u8 = xmlRoot.getM3u8();
-//		M3U8.downloadIndex(m3u8, dir);
-//		List<EXTINF> list = xmlRoot.getList();
-//		for (EXTINF extinf : list) {
-//			decryptFile(dir + File.separator +extinf.getIndex()+"-" +extinf.getTsName(), dir + File.separator + +extinf.getIndex()+"-" +extinf.getTsName(),
-//					dir + File.separator + "key.key");
-//			System.out.println(extinf.getTsName());
-//			
+//
 //		}
+//		System.out.println(list.length);
+
+		String dir = "C:\\Users\\zhouyu\\Desktop\\lxzc\\20211031230850643";
+		File file = new File(dir + File.separator + "extinf.xml");
+		XMLRoot xmlRoot = JAXBUtils.read(file);
+		List<EXTINF> list = xmlRoot.getList();
+		for (EXTINF extinf : list) {
+			if (extinf.getIndex() >= 429) {
+
+			decryptFile(dir + File.separator + extinf.getIndex() + "-" + extinf.getTsName(),
+					dir + File.separator + +extinf.getIndex() + "-" + extinf.getTsName(),
+					dir + File.separator + "key.key");
+			System.out.println(
+					extinf.getIndex() + "-" + extinf.getTsName() + "---" + (list.size() - extinf.getIndex() - 1));
+			}
+
+		}
+
 	}
+
 }

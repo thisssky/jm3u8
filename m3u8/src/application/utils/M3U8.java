@@ -18,13 +18,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import application.dto.EXTINF;
-import application.dto.XMLRoot;
 
 public class M3U8 {
 
+	public static final String UTF8 = "UTF-8";
 	public static final String HTTP = "http";
 	public static final String HTTPS = "https";
-	public static final String TS_FILE = "ts.txt";
+	public static final String TS_TXT = "ts.txt";
+	public static final String INDEX_M3U8 = "index.m3u8";
+	public static final String CINDEX_M3U8 = "cindex.m3u8";
 
 	// #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=800000,RESOLUTION=1080x608
 	public static String EXTM3U = "#EXTM3U";
@@ -43,7 +45,7 @@ public class M3U8 {
 		ArrayList<String> list = new ArrayList<String>();
 		try {
 			URL url = new URL(urlPath);
-			bufferedReader = new BufferedReader(new InputStreamReader(url.openStream(), "utf-8"));
+			bufferedReader = new BufferedReader(new InputStreamReader(url.openStream(), UTF8));
 			while ((read = bufferedReader.readLine()) != null) {
 				list.add(read);
 			}
@@ -83,7 +85,7 @@ public class M3U8 {
 
 		BufferedWriter indexWriter = null;
 		try {
-			indexWriter = new BufferedWriter(new FileWriter(dir + File.separator + "index.m3u8"));
+			indexWriter = new BufferedWriter(new FileWriter(dir + File.separator + INDEX_M3U8));
 			for (int i = 0, len = list.size(); i < len; i++) {
 				indexWriter.write(list.get(i));
 				if (i < len - 1) {
@@ -104,7 +106,7 @@ public class M3U8 {
 
 	public static void localIndex(String dir) {
 		// extinf
-		File file = new File(dir + File.separator + "index.m3u8");
+		File file = new File(dir + File.separator + INDEX_M3U8);
 		BufferedReader bufferedReader;
 		BufferedWriter bufferedWriter = null;
 		try {
@@ -114,10 +116,10 @@ public class M3U8 {
 			ArrayList<EXTINF> tsList = new ArrayList<EXTINF>();
 			int index = 0;
 			int c = 0;
-			bufferedWriter = new BufferedWriter(new FileWriter(dir + File.separator + "cindex.m3u8"));
+			bufferedWriter = new BufferedWriter(new FileWriter(dir + File.separator + CINDEX_M3U8));
 			while ((read = bufferedReader.readLine()) != null) {
 				if (read.contains(".ts")) {
-					extinf = new EXTINF(dir + File.separator + "index.m3u8", dir, index);
+					extinf = new EXTINF(dir + File.separator + INDEX_M3U8, dir, index);
 					extinf.setTs(read);
 					read = read.substring(read.lastIndexOf("/") + 1);
 					extinf.setTsName(read);
@@ -149,13 +151,81 @@ public class M3U8 {
 
 	}
 
+	public static void downloadByLocalM3u8(String file) {
+		String dir=file.substring(0,file.lastIndexOf(File.separator));
+		String read = "";
+		ArrayList<String> list = new ArrayList<String>();
+		BufferedReader bufferedReader = null;
+		boolean encrypted = false;
+
+		// 处理ts
+		ArrayList<EXTINF> tsList = new ArrayList<EXTINF>();
+		EXTINF extinf = null;
+		int index = 0;
+			
+				
+		try {
+			bufferedReader = new BufferedReader(new FileReader(file));
+		while ((read = bufferedReader.readLine()) != null) {
+//			&&read.endsWith(".ts")
+			if (!encrypted && read.contains(KEY)) {
+				encrypted = true;
+			}
+			if(read.endsWith(".ts")) {
+				
+			list.add(read);
+			extinf = new EXTINF();
+			extinf.setDir(dir);
+			extinf.setIndex(index);
+			extinf.setTs(read);
+			extinf.setTsName(read.substring(read.lastIndexOf("/") + 1));
+			extinf.setEncrypt(encrypted);
+			tsList.add(extinf);
+
+			index++;
+
+			}
+		}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}finally {
+			if(null!=bufferedReader) {
+				
+			try {
+				bufferedReader.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			}
+		}
+		
+		
+					
+				
+				// ts.txt
+				writeTS(tsList);
+				// extinf.xml
+				JAXBUtils.extinf(dir, tsList);
+
+//				if (encrypted) {
+//					// 加密视频创建index.m3u8,uri修改成本地，extinf也修改成本地
+//					writeCIndex(m3u8, list, dir);
+//				}
+	}
 	public static void main(String[] args) {
-		String dir = "E:\\xxx\\20201114223602297";
-		File file = new File(dir + File.separator + "extinf.xml");
-		XMLRoot xmlRoot = JAXBUtils.read(file);
-		String m3u8 = xmlRoot.getM3u8();
-		downloadIndex(m3u8, dir);
-		localIndex(dir);
+//		downloadByLocalM3u8("C:\\Users\\zhouyu\\Desktop\\完美世界\\20210812185223175\\index.m3u8");
+//		String dir = "E:\\xxx\\20201114223602297";
+//		File file = new File(dir + File.separator + "extinf.xml");
+//		XMLRoot xmlRoot = JAXBUtils.read(file);
+//		String m3u8 = xmlRoot.getM3u8();
+//		downloadIndex(m3u8, dir);
+//		localIndex(dir);
+
+//		ts("https://cdn-khzy-i-bofang.com/20201217/cFxyXDHB/800kb/hls/index.m3u8", "D:\\xxx\\0112\\test");
+		ts("https://vod8.wenshibaowenbei.com/20210813/fAeXYRvR/1000kb/hls/index.m3u8", "C:\\Users\\zhouyu\\Desktop\\testm3u8");
+
 	}
 
 	public static List<EXTINF> ts(String m3u8, String dir) {
@@ -217,7 +287,7 @@ public class M3U8 {
 		BufferedWriter cindexWriter = null;
 
 		try {
-			cindexWriter = new BufferedWriter(new FileWriter(dir + File.separator + "cindex.m3u8"));
+			cindexWriter = new BufferedWriter(new FileWriter(dir + File.separator + CINDEX_M3U8));
 			for (int i = 0, len = list.size(); i < len; i++) {
 				String line = list.get(i);
 				if (line.contains(KEY)) {
@@ -240,7 +310,7 @@ public class M3U8 {
 						url = new URL(prefix + key);
 					}
 
-					bufferedReader = new BufferedReader(new InputStreamReader(url.openStream(), "utf-8"));
+					bufferedReader = new BufferedReader(new InputStreamReader(url.openStream(), UTF8));
 					String read;
 					bufferedWriter = new BufferedWriter(new FileWriter(dir + File.separator + "key.key"));
 					while ((read = bufferedReader.readLine()) != null) {
@@ -308,7 +378,7 @@ public class M3U8 {
 
 	}
 
-	private static String writeTS(ArrayList<EXTINF> ts) {
+	public static String writeTS(List<EXTINF> ts) {
 		StringBuilder tsBuilder = new StringBuilder();
 		for (EXTINF extinf : ts) {
 			tsBuilder.append("file ");
@@ -317,7 +387,7 @@ public class M3U8 {
 			tsBuilder.append("'");
 			tsBuilder.append("\r\n");
 		}
-		String filePath = ts.get(0).getDir() + File.separator + TS_FILE;
+		String filePath = ts.get(0).getDir() + File.separator + TS_TXT;
 
 		File tsfile = new File(filePath);
 		FileWriter fileWriter = null;

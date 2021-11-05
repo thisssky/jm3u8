@@ -5,9 +5,19 @@ import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Optional;
 
 import javax.imageio.ImageIO;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 import javax.swing.ImageIcon;
 
 import javafx.scene.control.Alert;
@@ -19,6 +29,44 @@ import javafx.stage.Stage;
 
 public class CommonUtility {
 	public static final String IMAGE_PATH = "/image/";
+//	private static SSLContext sc;
+	private static SSLSocketFactory socketFactory;
+
+	static {
+		try {
+//			SSLContext sc = SSLContext.getInstance("SSL", "SunJSSE");
+			SSLContext sc = SSLContext.getInstance("SSL");
+			X509TrustManager x509TrustManager = new X509TrustManager() {
+
+				@Override
+				public X509Certificate[] getAcceptedIssuers() {
+					return new X509Certificate[] {};
+				}
+
+				@Override
+				public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+
+				}
+
+				@Override
+				public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+
+				}
+			};
+			sc.init(null, new TrustManager[] { x509TrustManager }, new java.security.SecureRandom());
+			socketFactory = sc.getSocketFactory();
+
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (KeyManagementException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	public static SSLSocketFactory getSSLSocketFactory() {
+		return socketFactory;
+	}
 
 	public static Dimension getDimension() {
 		Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
