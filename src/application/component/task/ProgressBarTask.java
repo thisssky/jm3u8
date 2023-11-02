@@ -46,7 +46,7 @@ public class ProgressBarTask extends Task<Integer> {
 	}
 
 	public void queueDownload(ConcurrentLinkedQueue<EXTINF> queue) {
-//		executorService.execute(new QueueRunnable(this, queue, atomicInteger, size));
+//		executorService.execute(new QueueRunnable(this,dir, queue, atomicInteger, size));
 	}
 
 	public void listDownlaod(int i) {
@@ -56,7 +56,7 @@ public class ProgressBarTask extends Task<Integer> {
 		if (i == num - 1) {
 			toIndex = size;
 		}
-		executorService.execute(new ListRunnable(this, list.subList(fromIndex, toIndex), atomicInteger, size));
+		executorService.execute(new ListRunnable(this, dir, list.subList(fromIndex, toIndex), atomicInteger, size));
 	}
 
 	public void update(int workDone, int max) {

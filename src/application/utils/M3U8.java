@@ -108,10 +108,9 @@ public class M3U8 {
 						}
 					}
 					// ts.txt,extinf.xml
-					extinf = new EXTINF(m3u8, dir, index);
+					extinf = new EXTINF(index);
 					extinf.setTs(read);
 					extinf.setTsName(read.substring(read.lastIndexOf("/") + 1));
-					extinf.setEncrypt(encrypted);
 					tsList.add(extinf);
 
 					tsBuilder = new StringBuilder();
@@ -131,7 +130,7 @@ public class M3U8 {
 				}
 				list.add(read);
 			}
-			JAXBUtils.extinf(dir,tsList);
+			JAXBUtils.extinf(m3u8,encrypted,dir,tsList);
 
 		} finally {
 			bufferedReader.close();
@@ -178,11 +177,10 @@ public class M3U8 {
 			bufferedWriter = new BufferedWriter(new FileWriter(dir + File.separator + CINDEX_M3U8));
 			while ((read = bufferedReader.readLine()) != null) {
 				if (read.contains(".ts")) {
-					extinf = new EXTINF(dir + File.separator + INDEX_M3U8, dir, index);
+					extinf = new EXTINF(index);
 					extinf.setTs(read);
 					read = read.substring(read.lastIndexOf("/") + 1);
 					extinf.setTsName(read);
-					extinf.setEncrypt(false);
 					tsList.add(extinf);
 
 					read = dir.replace("\\", "/") + "/" + index + "-" + read;
@@ -194,7 +192,7 @@ public class M3U8 {
 				System.out.println(c);
 				c++;
 			}
-			JAXBUtils.extinf(dir, tsList);
+			JAXBUtils.extinf("m3u8",false,dir, tsList);
 			writeTS(tsList);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -234,11 +232,9 @@ public class M3U8 {
 
 					list.add(read);
 					extinf = new EXTINF();
-					extinf.setDir(dir);
 					extinf.setIndex(index);
 					extinf.setTs(read);
 					extinf.setTsName(read.substring(read.lastIndexOf("/") + 1));
-					extinf.setEncrypt(encrypted);
 					tsList.add(extinf);
 
 					index++;
@@ -263,8 +259,7 @@ public class M3U8 {
 		// ts.txt
 		writeTS(tsList);
 		// extinf.xml
-		JAXBUtils.extinf(dir, tsList);
-
+		JAXBUtils.extinf("m3u8",encrypted,dir, tsList);
 //				if (encrypted) {
 //					// 加密视频创建index.m3u8,uri修改成本地，extinf也修改成本地
 //					writeCIndex(m3u8, list, dir);
@@ -388,17 +383,17 @@ public class M3U8 {
 		}
 
 	}
-
+@Deprecated
 	public static String writeTS(List<EXTINF> ts) {
 		StringBuilder tsBuilder = new StringBuilder();
 		for (EXTINF extinf : ts) {
 			tsBuilder.append("file ");
 			tsBuilder.append("'");
-			tsBuilder.append(extinf.getDir() + File.separator + extinf.getIndex() + "-" + extinf.getTsName());
+			tsBuilder.append("dir" + File.separator + extinf.getIndex() + "-" + extinf.getTsName());
 			tsBuilder.append("'");
 			tsBuilder.append("\r\n");
 		}
-		String filePath = ts.get(0).getDir() + File.separator + TS_TXT;
+		String filePath = "dir" + File.separator + TS_TXT;
 
 		File tsfile = new File(filePath);
 		FileWriter fileWriter = null;

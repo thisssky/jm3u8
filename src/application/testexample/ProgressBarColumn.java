@@ -74,7 +74,7 @@ public class ProgressBarColumn extends AnchorPane {
 			protected Task<Integer> createTask() {
 				ProgressBarTask tasks = new ProgressBarTask(m3u8, dir);
 				return tasks;
-			}	
+			}
 		};
 		service.progressProperty().addListener(new ChangeListener<Number>() {
 			@Override

@@ -164,7 +164,7 @@ public class AES {
 			decryptFile(dir + File.separator + extinf.getIndex() + "-" + extinf.getTsName(),
 					dir + File.separator + +extinf.getIndex() + "-" + extinf.getTsName(),
 					dir + File.separator + "key.key");
-			System.out.println(extinf.getDir() + "/" + extinf.getIndex() + "-" + extinf.getTsName() + "---"
+			System.out.println(dir + "/" + extinf.getIndex() + "-" + extinf.getTsName() + "---"
 					+ (list.size() - extinf.getIndex() - 1));
 
 		}

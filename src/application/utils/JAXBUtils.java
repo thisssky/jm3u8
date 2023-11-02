@@ -48,8 +48,8 @@ public class JAXBUtils {
 
 	}
 
-	public static synchronized void insert(String fileType, EXTINF extinf) {
-		File file = new File(extinf.getDir() + File.separator + fileType);
+	public static synchronized void insert(String dir, String fileType, EXTINF extinf) {
+		File file = new File(dir + File.separator + fileType);
 		XMLRoot root = read(file);
 		List<EXTINF> list = root.getList();
 		list.add(extinf);
@@ -63,8 +63,9 @@ public class JAXBUtils {
 		update(file, root);
 	}
 
+	@Deprecated
 	public static synchronized void delete(String fileType, EXTINF extinf) {
-		File file = new File(extinf.getDir() + File.separator + fileType);
+		File file = new File("dir" + File.separator + fileType);
 		XMLRoot root = read(file);
 		List<EXTINF> list = root.getList();
 		EXTINF deleteExtinf = null;
@@ -92,18 +93,12 @@ public class JAXBUtils {
 
 	}
 
-	public static void main(String[] args) {
-		EXTINF extinf = new EXTINF("", "C:\\Users\\kyh\\Desktop\\m3u8\\zhentan\\02s\\02", 4);
-//		insert(EXTINF_TYPE, extinf);
-		extinfExists("C:\\Users\\kyh\\Desktop\\m3u8\\zhentan\\02s\\02\\zzz");
-	}
-
-	public static void extinf(String dir, List<EXTINF> ts) {
+	public static void extinf(String m3u8, Boolean encrypted, String dir, List<EXTINF> ts) {
 		XMLRoot root = new XMLRoot();
 		root.getList().addAll(ts);
 		root.setDir(dir);
-		root.setEncrypt(ts.get(0).getEncrypt());
-		root.setM3u8(ts.get(0).getM3u8());
+		root.setEncrypt(encrypted);
+		root.setM3u8(m3u8);
 		root.setTotal(ts.size());
 		update(new File(dir + File.separator + EXTINF_TYPE), root);
 	}
@@ -122,14 +117,14 @@ public class JAXBUtils {
 		return xmlRoot;
 	}
 
-	public static synchronized void error(EXTINF data) {
+	public static synchronized void error(String dir, EXTINF extinf) {
 
-		File errorFile = new File(data.getDir() + File.separator + ERROR_TYPE);
+		File errorFile = new File(dir + File.separator + ERROR_TYPE);
 		if (errorFile.exists()) {
-			insert(ERROR_TYPE, data);
+			insert(dir, ERROR_TYPE, extinf);
 		} else {
 			XMLRoot root = new XMLRoot();
-			root.getList().add(data);
+			root.getList().add(extinf);
 			update(errorFile, root);
 		}
 

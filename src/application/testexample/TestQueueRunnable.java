@@ -17,14 +17,16 @@ import application.utils.JAXBUtils;
 
 public class TestQueueRunnable implements Runnable {
 	private DownloadTask task;
+	private String dir;
 	private AtomicBoolean flag;
 	private AtomicInteger progress;
 	private ConcurrentLinkedQueue<EXTINF> queue;
 	private int size;
 
-	public TestQueueRunnable(DownloadTask task, AtomicBoolean flag, AtomicInteger progress,
+	public TestQueueRunnable(DownloadTask task,String dir, AtomicBoolean flag, AtomicInteger progress,
 			ConcurrentLinkedQueue<EXTINF> queue, int size) {
 		this.task = task;
+		this.dir=dir;
 		this.flag = flag;
 		this.progress = progress;
 		this.queue = queue;
@@ -46,7 +48,7 @@ public class TestQueueRunnable implements Runnable {
 	private void download(EXTINF extinf) {
 		BufferedInputStream bufferedInputStream = null;
 		BufferedOutputStream bufferedOutputStream = null;
-		String fileOutPath = extinf.getDir() + File.separator + extinf.getIndex() + "-" + extinf.getTsName();
+		String fileOutPath = dir + File.separator + extinf.getIndex() + "-" + extinf.getTsName();
 		try {
 			URL url = new URL(extinf.getTs());
 			bufferedInputStream = new BufferedInputStream(url.openStream());
@@ -61,10 +63,10 @@ public class TestQueueRunnable implements Runnable {
 		} catch (MalformedURLException e) {
 			queue.offer(extinf);
 			extinf.setTsName("MalformedURLException" + e.getMessage());
-			JAXBUtils.error(extinf);
+			JAXBUtils.error(dir,extinf);
 		} catch (IOException e) {
 			extinf.setTsName("IOException" + e.getMessage());
-			JAXBUtils.error(extinf);
+			JAXBUtils.error(dir,extinf);
 			queue.offer(extinf);
 		} finally {
 			try {
@@ -76,7 +78,7 @@ public class TestQueueRunnable implements Runnable {
 				}
 			} catch (IOException e) {
 				extinf.setTsName("close.IOException" + e.getMessage());
-				JAXBUtils.error(extinf);
+				JAXBUtils.error(dir,extinf);
 			}
 		}
 	}

@@ -41,7 +41,7 @@ public class DownloadTask extends Task<Integer> {
 		}
 
 		for (int i = 0; i < thread; i++) {
-			ThreadPool.execute(new QueueRunnable(this, flag, progress, remain, max.get()));
+			ThreadPool.execute(new QueueRunnable(this,dir, flag, progress, remain, max.get()));
 		}
 		return null;
 	}

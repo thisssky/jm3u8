@@ -16,12 +16,14 @@ import application.utils.JAXBUtils;
 
 public class ListRunnable implements Runnable {
 	private ProgressBarTask task;
+	private String dir;
 	private List<EXTINF> ts;
 	private AtomicInteger atomicInteger;
 	private int count;
 
-	public ListRunnable(ProgressBarTask task, List<EXTINF> ts, AtomicInteger atomicInteger, int count) {
+	public ListRunnable(ProgressBarTask task,String dir, List<EXTINF> ts, AtomicInteger atomicInteger, int count) {
 		this.task = task;
+		this.dir=dir;
 		this.ts = ts;
 		this.atomicInteger = atomicInteger;
 		this.count = count;
@@ -35,7 +37,7 @@ public class ListRunnable implements Runnable {
 			URL url = new URL(extinf.getTs());
 			// 下载资源
 			bufferedInputStream = new BufferedInputStream(url.openStream());
-			String fileOutPath = extinf.getDir() + File.separator + extinf.getIndex() + "-" + extinf.getTsName();
+			String fileOutPath = dir + File.separator + extinf.getIndex() + "-" + extinf.getTsName();
 			bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(new File(fileOutPath)));
 			byte[] bytes = new byte[1024];
 			int length = 0;
@@ -49,10 +51,10 @@ public class ListRunnable implements Runnable {
 //			JAXBUtils.delete(JAXBUtils.EXTINF_TYPE, extinf);
 		} catch (MalformedURLException e) {
 			extinf.setTsName("MalformedURLException" + e.getMessage());
-			JAXBUtils.error(extinf);
+			JAXBUtils.error(dir,extinf);
 		} catch (IOException e) {
 			extinf.setTsName("IOException" + e.getMessage());
-			JAXBUtils.error(extinf);
+			JAXBUtils.error(dir,extinf);
 			download(extinf);
 		} finally {
 			try {
@@ -64,7 +66,7 @@ public class ListRunnable implements Runnable {
 				}
 			} catch (IOException e) {
 				extinf.setTsName("close.IOException" + e.getMessage());
-				JAXBUtils.error(extinf);
+				JAXBUtils.error(dir,extinf);
 			}
 		}
 	}
