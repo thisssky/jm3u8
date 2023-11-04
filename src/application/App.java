@@ -20,11 +20,13 @@ import application.component.Toast;
 import application.component.pane.DownloadColumnPane;
 import application.component.pane.MergeColumnPane;
 import application.dto.EXTINF;
+import application.dto.EXTM3U;
 import application.dto.Message;
 import application.dto.TableItem;
-import application.dto.XMLRoot;
-import application.utils.CommonUtility;
-import application.utils.JAXBUtils;
+import application.runnable.ThreadPool;
+import application.utils.Common;
+import application.utils.Constants;
+import application.utils.JAXB;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -79,6 +81,7 @@ public class App extends Application {
 	private ListView<String> leftBox;
 	private BorderPane rightBox;
 	private TableView<TableItem> tableView;
+	private Runnable receiveRunnable;
 
 	public static void main(String[] args) {
 		Application.launch(args);
@@ -100,13 +103,14 @@ public class App extends Application {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+				System.exit(0);
 			}
 		});
 		this.primaryStage = primaryStage;
 		primaryStage.setMinWidth(650);
 		primaryStage.setTitle("下载m3u8视频");
 		ObservableList<javafx.scene.image.Image> icons = primaryStage.getIcons();
-		icons.add(CommonUtility.getImage("title.png"));
+		icons.add(Common.getImage("title.png"));
 
 		// 创建MenuBar
 		MenuBar menuBar = new MenuBar();
@@ -145,7 +149,7 @@ public class App extends Application {
 	}
 
 	private void receive() {
-		new Thread(new Runnable() {
+		receiveRunnable = new Runnable() {
 
 			@Override
 			public void run() {
@@ -187,7 +191,8 @@ public class App extends Application {
 				}
 
 			}
-		}).start();
+		};
+		ThreadPool.execute(receiveRunnable);
 	}
 
 	private void sendMessage(String message) throws IOException {
@@ -317,11 +322,12 @@ public class App extends Application {
 								Stream<String> lines = bufferedReader.lines();
 								lines.forEach(item -> {
 									String format = formatter.format(LocalDateTime.now());
-									String dir = dirTextField.getText() + File.separator + format + "-"
+									String dir = dirTextField.getText() + File.separator + format + Constants.UNDERLINE
 											+ Math.abs(item.hashCode());
 									File file2 = new File(dir);
 									if (file2.exists()) {
-										dir += "-re";
+										dir += Constants.UNDERLINE;
+										dir += "re";
 									}
 									// 启动下载
 									TableItem tableItem = new TableItem(item, dir);
@@ -457,7 +463,7 @@ public class App extends Application {
 				boolean flag = false;
 				for (int i = 0; i < files.size(); i++) {
 					File file = files.get(i);
-					if (file.getName().equals(JAXBUtils.EXTINF_TYPE)) {
+					if (file.getName().equals(Constants.EXTINF_TYPE)) {
 						ObservableList<TableItem> items = tableView.getItems();
 						for (TableItem tableItem : items) {
 							if (tableItem.getDir().equals(file.getParent())) {
@@ -471,8 +477,8 @@ public class App extends Application {
 							break;
 						} else {
 
-							XMLRoot xmlRoot = JAXBUtils.read(file);
-							TableItem tableItem = new TableItem(xmlRoot.getM3u8(), xmlRoot.getDir());
+							EXTM3U xmlRoot = JAXB.read(file);
+							TableItem tableItem = new TableItem(xmlRoot.getUrl(), xmlRoot.getDir());
 							tableView.getItems().add(tableItem);
 							// 下载
 							tableItem.getDownloadColumn().localDownload(xmlRoot);
@@ -540,7 +546,7 @@ public class App extends Application {
 			public void handle(ActionEvent actionEvent) {
 				String downloadUrl = urlTextField.getText();
 				String dir = dirTextField.getText();
-				Image image = CommonUtility.getImage("title.png");
+				Image image = Common.getImage("title.png");
 				if (null == downloadUrl || "".equals(downloadUrl.trim())) {
 					Toast toast = new Toast("下载链接不能为空!");
 					toast.showBottom(primaryStage);

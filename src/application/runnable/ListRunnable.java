@@ -12,7 +12,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import application.component.task.ProgressBarTask;
 import application.dto.EXTINF;
-import application.utils.JAXBUtils;
+import application.utils.Constants;
+import application.utils.JAXB;
 
 public class ListRunnable implements Runnable {
 	private ProgressBarTask task;
@@ -37,7 +38,7 @@ public class ListRunnable implements Runnable {
 			URL url = new URL(extinf.getTs());
 			// 下载资源
 			bufferedInputStream = new BufferedInputStream(url.openStream());
-			String fileOutPath = dir + File.separator + extinf.getIndex() + "-" + extinf.getTsName();
+			String fileOutPath = dir + File.separator + extinf.getIndex() + Constants.UNDERLINE + extinf.getTsName();
 			bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(new File(fileOutPath)));
 			byte[] bytes = new byte[1024];
 			int length = 0;
@@ -51,10 +52,10 @@ public class ListRunnable implements Runnable {
 //			JAXBUtils.delete(JAXBUtils.EXTINF_TYPE, extinf);
 		} catch (MalformedURLException e) {
 			extinf.setTsName("MalformedURLException" + e.getMessage());
-			JAXBUtils.error(dir,extinf);
+			JAXB.error(dir,extinf);
 		} catch (IOException e) {
 			extinf.setTsName("IOException" + e.getMessage());
-			JAXBUtils.error(dir,extinf);
+			JAXB.error(dir,extinf);
 			download(extinf);
 		} finally {
 			try {
@@ -66,7 +67,7 @@ public class ListRunnable implements Runnable {
 				}
 			} catch (IOException e) {
 				extinf.setTsName("close.IOException" + e.getMessage());
-				JAXBUtils.error(dir,extinf);
+				JAXB.error(dir,extinf);
 			}
 		}
 	}

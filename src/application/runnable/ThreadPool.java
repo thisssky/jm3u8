@@ -17,6 +17,18 @@ public class ThreadPool {
 	public static void execute(Runnable runnable) {
 		executor.execute(runnable);
 	}
+	public static void shutdown(Runnable runnable) {
+		executor.remove(runnable);
+		executor.shutdown();
+	}
+	public static void shutdown() {
+		executor.purge();
+		executor.shutdown();
+	}
+	public static void shutdownNow() {
+		executor.purge();
+		executor.shutdownNow();
+	}
 
 	public static void info() {
 		int activeCount = ThreadPool.executor.getActiveCount();

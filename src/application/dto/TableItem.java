@@ -2,7 +2,7 @@ package application.dto;
 
 import application.component.pane.DownloadColumnPane;
 import application.component.pane.MergeColumnPane;
-import application.utils.CommonUtility;
+import application.utils.Common;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
@@ -90,7 +90,7 @@ public class TableItem {
 				if (mergeCheckBox.isSelected()) {
 					Alert alert = new Alert(AlertType.INFORMATION);
 					Stage window = (Stage) alert.getDialogPane().getScene().getWindow();
-					Image image = CommonUtility.getImage("title.png");
+					Image image = Common.getImage("title.png");
 					window.getIcons().add(image);
 					alert.setTitle("提示");
 					alert.setHeaderText("已合并!");

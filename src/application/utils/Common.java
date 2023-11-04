@@ -25,7 +25,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
-public class CommonUtility {
+public class Common {
 	public static final String IMAGE_PATH = "/image/";
 //	private static SSLContext sc;
 	private static SSLSocketFactory socketFactory;
@@ -85,7 +85,7 @@ public class CommonUtility {
 	}
 
 	public static BufferedImage getBufferedImage(String url) {
-		InputStream resource = CommonUtility.class.getResourceAsStream(IMAGE_PATH + url);
+		InputStream resource = Common.class.getResourceAsStream(IMAGE_PATH + url);
 		BufferedImage bufferedImage = null;
 		try {
 			bufferedImage = ImageIO.read(resource);
@@ -113,7 +113,7 @@ public class CommonUtility {
 	}
 
 	public static Image getImage(String imageName) {
-		InputStream resource = CommonUtility.class.getResourceAsStream(IMAGE_PATH + imageName);
+		InputStream resource = Common.class.getResourceAsStream(IMAGE_PATH + imageName);
 		Image image = new Image(resource);
 		return image;
 	}

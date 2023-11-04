@@ -10,15 +10,13 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import application.dto.EXTINF;
-import application.dto.XMLRoot;
+import application.dto.EXTM3U;
 
-public class JAXBUtils {
-	public static final String EXTINF_TYPE = "extinf.xml";
-	public static final String ERROR_TYPE = "error.xml";
+public class JAXB {
 
 	public static JAXBContext context;
 	static {
-		Class<XMLRoot> rootClass = XMLRoot.class;
+		Class<EXTM3U> rootClass = EXTM3U.class;
 
 		try {
 			// creating the JAXBUtils context
@@ -36,10 +34,10 @@ public class JAXBUtils {
 		}
 	}
 
-	public static synchronized XMLRoot read(File file) {
+	public static synchronized EXTM3U read(File file) {
 		try {
 			Unmarshaller unmarshaller = context.createUnmarshaller();
-			XMLRoot xmlRoot = (XMLRoot) unmarshaller.unmarshal(file);
+			EXTM3U xmlRoot = (EXTM3U) unmarshaller.unmarshal(file);
 			return xmlRoot;
 		} catch (JAXBException e) {
 			e.printStackTrace();
@@ -50,7 +48,7 @@ public class JAXBUtils {
 
 	public static synchronized void insert(String dir, String fileType, EXTINF extinf) {
 		File file = new File(dir + File.separator + fileType);
-		XMLRoot root = read(file);
+		EXTM3U root = read(file);
 		List<EXTINF> list = root.getList();
 		list.add(extinf);
 		list.sort(new Comparator<EXTINF>() {
@@ -66,7 +64,7 @@ public class JAXBUtils {
 	@Deprecated
 	public static synchronized void delete(String fileType, EXTINF extinf) {
 		File file = new File("dir" + File.separator + fileType);
-		XMLRoot root = read(file);
+		EXTM3U root = read(file);
 		List<EXTINF> list = root.getList();
 		EXTINF deleteExtinf = null;
 		for (EXTINF extinf2 : list) {
@@ -79,7 +77,7 @@ public class JAXBUtils {
 		update(file, root);
 	}
 
-	public static synchronized void update(File file, XMLRoot root) {
+	public static synchronized void update(File file, EXTM3U root) {
 
 		try {
 			Marshaller marshaller = context.createMarshaller();
@@ -94,36 +92,36 @@ public class JAXBUtils {
 	}
 
 	public static void extinf(String m3u8, Boolean encrypted, String dir, List<EXTINF> ts) {
-		XMLRoot root = new XMLRoot();
+		EXTM3U root = new EXTM3U();
 		root.getList().addAll(ts);
 		root.setDir(dir);
 		root.setEncrypt(encrypted);
-		root.setM3u8(m3u8);
+		root.setUrl(m3u8);
 		root.setTotal(ts.size());
-		update(new File(dir + File.separator + EXTINF_TYPE), root);
+		update(new File(dir + File.separator + Constants.EXTINF_TYPE), root);
 	}
 
 	public static boolean extinfExists(String dir) {
-		File file = new File(dir + File.separator + EXTINF_TYPE);
+		File file = new File(dir + File.separator + Constants.EXTINF_TYPE);
 		if (file.exists()) {
 			return true;
 		}
 		return false;
 	}
 
-	public static XMLRoot readExtinf(String dir) {
-		File file = new File(dir + File.separator + EXTINF_TYPE);
-		XMLRoot xmlRoot = read(file);
+	public static EXTM3U readExtinf(String dir) {
+		File file = new File(dir + File.separator + Constants.EXTINF_TYPE);
+		EXTM3U xmlRoot = read(file);
 		return xmlRoot;
 	}
 
 	public static synchronized void error(String dir, EXTINF extinf) {
 
-		File errorFile = new File(dir + File.separator + ERROR_TYPE);
+		File errorFile = new File(dir + File.separator + Constants.ERROR_TYPE);
 		if (errorFile.exists()) {
-			insert(dir, ERROR_TYPE, extinf);
+			insert(dir, Constants.ERROR_TYPE, extinf);
 		} else {
-			XMLRoot root = new XMLRoot();
+			EXTM3U root = new EXTM3U();
 			root.getList().add(extinf);
 			update(errorFile, root);
 		}

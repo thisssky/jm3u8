@@ -1,7 +1,7 @@
 package application.component;
 
 import application.dto.TableItem;
-import application.utils.CommonUtility;
+import application.utils.Common;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -50,7 +50,7 @@ public class ContextMenuTableRow extends TableRow<TableItem> {
 
 			@Override
 			public void handle(ActionEvent event) {
-				boolean confirm = CommonUtility.confirm(AlertType.CONFIRMATION, "确定移除任务吗?");
+				boolean confirm = Common.confirm(AlertType.CONFIRMATION, "确定移除任务吗?");
 				if (confirm) {
 					ObservableList<TableItem> items = getTableView().getItems();
 					TableItem tableItem = items.get(getIndex());

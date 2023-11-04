@@ -10,8 +10,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import application.component.task.DownloadTask;
 import application.dto.EXTINF;
-import application.dto.XMLRoot;
-import application.utils.JAXBUtils;
+import application.dto.EXTM3U;
+import application.utils.Constants;
+import application.utils.JAXB;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Service;
@@ -80,7 +81,7 @@ public class DownloadColumnPane extends AnchorPane {
 	}
 
 	/** 本地文件下载 */
-	public void localDownload(XMLRoot xmlRoot) {
+	public void localDownload(EXTM3U xmlRoot) {
 		progressBar.setProgress(-1);
 		// flag progress, remain, max
 		List<EXTINF> list = xmlRoot.getList();
@@ -106,7 +107,7 @@ public class DownloadColumnPane extends AnchorPane {
 			while (iterator.hasNext()) {
 				EXTINF extinf = iterator.next();
 				for (String element : ts) {
-					if (element.equals(extinf.getIndex() + "-" + extinf.getTsName())) {
+					if (element.equals(extinf.getIndex() + Constants.UNDERLINE + extinf.getTsName())) {
 						iterator.remove();
 						break;
 					}
@@ -129,7 +130,7 @@ public class DownloadColumnPane extends AnchorPane {
 
 	/** 重新下载 */
 	public void resume() {
-		XMLRoot xmlRoot = JAXBUtils.read(new File(dir + File.separator + JAXBUtils.EXTINF_TYPE));
+		EXTM3U xmlRoot = JAXB.read(new File(dir + File.separator + Constants.EXTINF_TYPE));
 		localDownload(xmlRoot);
 	}
 

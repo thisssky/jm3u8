@@ -16,8 +16,9 @@ import javax.net.ssl.HttpsURLConnection;
 
 import application.component.task.DownloadTask;
 import application.dto.EXTINF;
-import application.utils.CommonUtility;
-import application.utils.JAXBUtils;
+import application.utils.Common;
+import application.utils.Constants;
+import application.utils.JAXB;
 
 public class QueueRunnable implements Runnable {
 	private DownloadTask task;
@@ -84,13 +85,13 @@ public class QueueRunnable implements Runnable {
 	private void download(EXTINF extinf) {
 		BufferedInputStream bufferedInputStream = null;
 		BufferedOutputStream bufferedOutputStream = null;
-		String fileOutPath = dir + File.separator + extinf.getIndex() + "-" + extinf.getTsName();
+		String fileOutPath = dir + File.separator + extinf.getIndex() + Constants.UNDERLINE + extinf.getTsName();
 		try {
 			URL url = new URL(extinf.getTs());
 //			bufferedInputStream = new BufferedInputStream(url.openStream());
 			URLConnection openConnection = url.openConnection();
 			if (openConnection instanceof HttpsURLConnection) {
-				((HttpsURLConnection) openConnection).setSSLSocketFactory(CommonUtility.getSSLSocketFactory());
+				((HttpsURLConnection) openConnection).setSSLSocketFactory(Common.getSSLSocketFactory());
 
 			}
 			bufferedInputStream = new BufferedInputStream(openConnection.getInputStream());
@@ -105,10 +106,10 @@ public class QueueRunnable implements Runnable {
 		} catch (MalformedURLException e) {
 			queue.offer(extinf);
 			extinf.setTsName("MalformedURLException" + e.getMessage());
-			JAXBUtils.error(dir,extinf);
+			JAXB.error(dir,extinf);
 		} catch (IOException e) {
 			extinf.setTsName("IOException" + e.getMessage());
-			JAXBUtils.error(dir,extinf);
+			JAXB.error(dir,extinf);
 			queue.offer(extinf);
 		} finally {
 			try {
@@ -120,7 +121,7 @@ public class QueueRunnable implements Runnable {
 				}
 			} catch (IOException e) {
 				extinf.setTsName("close.IOException" + e.getMessage());
-				JAXBUtils.error(dir,extinf);
+				JAXB.error(dir,extinf);
 			}
 		}
 	}

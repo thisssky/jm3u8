@@ -21,7 +21,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import application.dto.EXTINF;
-import application.dto.XMLRoot;
+import application.dto.EXTM3U;
 
 /**
  *
@@ -158,7 +158,7 @@ public class AES {
 	public static void decryptDir(String dir) {
 
 		File file = new File(dir + File.separator + "extinf.xml");
-		XMLRoot xmlRoot = JAXBUtils.read(file);
+		EXTM3U xmlRoot = JAXB.read(file);
 		List<EXTINF> list = xmlRoot.getList();
 		for (EXTINF extinf : list) {
 			decryptFile(dir + File.separator + extinf.getIndex() + "-" + extinf.getTsName(),
@@ -180,7 +180,7 @@ public class AES {
 		command.add("-safe");
 		command.add("0");
 		command.add("-i");
-		command.add(dir + File.separator + M3U8.TS_TXT);
+		command.add(dir + File.separator + Constants.TS_TXT);
 		command.add("-c");
 		command.add("copy");
 		command.add(dir + File.separator + date + ".mp4");
@@ -301,7 +301,7 @@ public class AES {
 
 		String dir = "C:\\Users\\zhouyu\\Desktop\\lxzc\\20211031230850643";
 		File file = new File(dir + File.separator + "extinf.xml");
-		XMLRoot xmlRoot = JAXBUtils.read(file);
+		EXTM3U xmlRoot = JAXB.read(file);
 		List<EXTINF> list = xmlRoot.getList();
 		for (EXTINF extinf : list) {
 			if (extinf.getIndex() >= 429) {

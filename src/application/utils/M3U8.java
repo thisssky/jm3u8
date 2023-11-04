@@ -12,6 +12,7 @@ import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -28,35 +29,15 @@ import application.dto.EXTINF;
  */
 public class M3U8 {
 
-	public static final String UTF8 = "UTF-8";
-	public static final String HTTP = "http";
-	public static final String HTTPS = "https";
-	public static final String TS_TXT = "ts.txt";
-	public static final String INDEX_M3U8 = "index.m3u8";
-	public static final String CINDEX_M3U8 = "cindex.m3u8";
-	public static final String JING = "#";
-
-	// #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=800000,RESOLUTION=1080x608
-	public static String EXTM3U = "#EXTM3U";
-	// 加密的
-	// #EXT-X-KEY:METHOD=AES-128,URI=""
-	public static final String KEY = "#EXT-X-KEY";
-	public static final String VERSION = "#EXT-X-VERSION";
-	public static final String TARGETDURATION = "#EXT-X-TARGETDURATION";
-	public static final String SEQUENCE = "#EXT-X-MEDIA-SEQUENCE";
-	public static final String STREAM = "#EXT-X-STREAM-INF";
-	public static final String EXTINF = "#EXTINF";
-	public static final String ENDLIST = "#EXT-X-ENDLIST";
-
 	public static List<String> index(String m3u8) throws IOException {
 		BufferedReader bufferedReader = null;
 		String read = "";
 		List<String> list = new ArrayList<>();
 		try {
 			URL url = new URL(m3u8);
-			bufferedReader = new BufferedReader(new InputStreamReader(url.openStream(), UTF8));
+			bufferedReader = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8));
 			while ((read = bufferedReader.readLine()) != null) {
-				if(!read.equals("")&&read.trim().length()!=0) {
+				if (!read.equals("") && read.trim().length() != 0) {
 					list.add(read);
 				}
 			}
@@ -72,7 +53,7 @@ public class M3U8 {
 			dirFile.mkdirs();
 		}
 		BufferedReader bufferedReader = null;
-		URL url=null;
+		URL url = null;
 		String read = "";
 		List<String> list = new ArrayList<>();
 		BufferedWriter indexWriter = null;
@@ -83,7 +64,7 @@ public class M3U8 {
 		StringBuilder tsBuilder = null;
 		EXTINF extinf = null;
 		int index = 0;
-		String filePath = dir + File.separator + TS_TXT;
+		String filePath = dir + File.separator + Constants.TS_TXT;
 		File tsfile = new File(filePath);
 		FileWriter fileWriter = null;
 		boolean encrypted = false;
@@ -92,14 +73,14 @@ public class M3U8 {
 			url = new URL(m3u8);
 			indexWriter = new BufferedWriter(
 					new FileWriter(dir + File.separator + m3u8.substring(m3u8.lastIndexOf("/") + 1)));
-			bufferedReader = new BufferedReader(new InputStreamReader(url.openStream(), UTF8));
+			bufferedReader = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8));
 			while ((read = bufferedReader.readLine()) != null) {
-				if (!encrypted && read.contains(KEY)) {
+				if (!encrypted && read.contains(Constants.KEY)) {
 					encrypted = true;
 				}
-				if (!read.startsWith(JING)) {
+				if (!read.startsWith(Constants.JING)) {
 					// 本地m3u8文件内必须是网络地址
-					if (!read.startsWith(HTTP) || !read.startsWith(HTTPS)) {
+					if (!read.startsWith(Constants.HTTP) || !read.startsWith(Constants.HTTPS)) {
 						String[] tsArray = read.split("/");
 						for (String element : tsArray) {
 							if (!"".equals(element) && !m3u8Prefix.contains(element)) {
@@ -116,7 +97,7 @@ public class M3U8 {
 					tsBuilder = new StringBuilder();
 					tsBuilder.append("file ");
 					tsBuilder.append("'");
-					tsBuilder.append(dir + File.separator + index + "-" + extinf.getTsName());
+					tsBuilder.append(dir + File.separator + index + Constants.UNDERLINE + extinf.getTsName());
 					tsBuilder.append("'");
 					tsBuilder.append("\r\n");
 					fileWriter.write(tsBuilder.toString());
@@ -125,12 +106,12 @@ public class M3U8 {
 				}
 
 				indexWriter.write(read);
-				if (!ENDLIST.equalsIgnoreCase(read)) {
+				if (!Constants.ENDLIST.equalsIgnoreCase(read)) {
 					indexWriter.newLine();
 				}
 				list.add(read);
 			}
-			JAXBUtils.extinf(m3u8,encrypted,dir,tsList);
+			JAXB.extinf(m3u8, encrypted, dir, tsList);
 
 		} finally {
 			bufferedReader.close();
@@ -145,17 +126,17 @@ public class M3U8 {
 
 		List<String> list = index(m3u8);
 		String last = list.get(list.size() - 1);
-		while (!ENDLIST.equalsIgnoreCase(last)) {
+		while (!Constants.ENDLIST.equalsIgnoreCase(last)) {
 			// 如果不是#EXT-X-ENDLIST結尾还需继续
 			String prefix = m3u8.substring(0, m3u8.lastIndexOf("/") + 1);
 			if (last.startsWith("/")) {
 				m3u8 = prefix + last.substring(1);
-			} else if (last.startsWith(HTTP) || last.startsWith(HTTPS)) {
+			} else if (last.startsWith(Constants.HTTP) || last.startsWith(Constants.HTTPS)) {
 				m3u8 = last;
 			} else {
 				m3u8 = prefix + last;
 			}
-			last = ENDLIST;
+			last = Constants.ENDLIST;
 		}
 		tsList = getAndWriteMediaPlaylist(m3u8, dir);
 		return tsList;
@@ -164,7 +145,7 @@ public class M3U8 {
 	@Deprecated
 	public static void localIndex22(String dir) {
 		// extinf
-		File file = new File(dir + File.separator + INDEX_M3U8);
+		File file = new File(dir + File.separator + Constants.INDEX_M3U8);
 		BufferedReader bufferedReader;
 		BufferedWriter bufferedWriter = null;
 		try {
@@ -174,7 +155,7 @@ public class M3U8 {
 			ArrayList<EXTINF> tsList = new ArrayList<>();
 			int index = 0;
 			int c = 0;
-			bufferedWriter = new BufferedWriter(new FileWriter(dir + File.separator + CINDEX_M3U8));
+			bufferedWriter = new BufferedWriter(new FileWriter(dir + File.separator + Constants.CINDEX_M3U8));
 			while ((read = bufferedReader.readLine()) != null) {
 				if (read.contains(".ts")) {
 					extinf = new EXTINF(index);
@@ -183,7 +164,7 @@ public class M3U8 {
 					extinf.setTsName(read);
 					tsList.add(extinf);
 
-					read = dir.replace("\\", "/") + "/" + index + "-" + read;
+					read = dir.replace("\\", "/") + "/" + index + Constants.UNDERLINE + read;
 					index++;
 				}
 				bufferedWriter.write(read);
@@ -192,7 +173,7 @@ public class M3U8 {
 				System.out.println(c);
 				c++;
 			}
-			JAXBUtils.extinf("m3u8",false,dir, tsList);
+			JAXB.extinf("m3u8", false, dir, tsList);
 			writeTS(tsList);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -225,7 +206,7 @@ public class M3U8 {
 			bufferedReader = new BufferedReader(new FileReader(file));
 			while ((read = bufferedReader.readLine()) != null) {
 //			&&read.endsWith(".ts")
-				if (!encrypted && read.contains(KEY)) {
+				if (!encrypted && read.contains(Constants.KEY)) {
 					encrypted = true;
 				}
 				if (read.endsWith(".ts")) {
@@ -259,7 +240,7 @@ public class M3U8 {
 		// ts.txt
 		writeTS(tsList);
 		// extinf.xml
-		JAXBUtils.extinf("m3u8",encrypted,dir, tsList);
+		JAXB.extinf("m3u8", encrypted, dir, tsList);
 //				if (encrypted) {
 //					// 加密视频创建index.m3u8,uri修改成本地，extinf也修改成本地
 //					writeCIndex(m3u8, list, dir);
@@ -277,13 +258,13 @@ public class M3U8 {
 
 //		ts("https://cdn-khzy-i-bofang.com/20201217/cFxyXDHB/800kb/hls/index.m3u8", "D:\\xxx\\0112\\test");
 //		ts("https://vip.ffzyread.com/20231011/17842_dcb990be/index.m3u8", "C:\\Users\\sky\\Desktop\\testm3u8");
-		String m3u8="https://vip.ffzyread.com/20231011/17842_dcb990be/index.m3u8";
-		m3u8="https://vip.ffzyread1.com/20230714/15271_e7c46fec/index.m3u8";
-		String dir="C:\\Users\\sky\\Desktop\\testm3u8";
+		String m3u8 = "https://vip.ffzyread.com/20231011/17842_dcb990be/index.m3u8";
+		m3u8 = "https://vip.ffzyread1.com/20230714/15271_e7c46fec/index.m3u8";
+		m3u8 = "https://v.cdnlz13.com/20231028/19364_53e2e591/2000k/hls/index.m3u8";
+		String dir = "C:\\Users\\sky\\Desktop\\47\\2\\test";
 		indexDownload(m3u8, dir);
 
 	}
-
 
 	private static void writeCIndex(String m3u8, List<String> list, String dir) {
 		int index = 0;
@@ -293,10 +274,10 @@ public class M3U8 {
 		BufferedWriter cindexWriter = null;
 
 		try {
-			cindexWriter = new BufferedWriter(new FileWriter(dir + File.separator + CINDEX_M3U8));
+			cindexWriter = new BufferedWriter(new FileWriter(dir + File.separator + Constants.CINDEX_M3U8));
 			for (String element : list) {
 				String line = element;
-				if (line.contains(KEY)) {
+				if (line.contains(Constants.KEY)) {
 					String prefix = m3u8.substring(0, m3u8.lastIndexOf("/") + 1);
 					int keyIndexStart = line.indexOf("URI=");
 					if (-1 == keyIndexStart) {
@@ -310,13 +291,14 @@ public class M3U8 {
 					line = keyPrefix + redir + "/" + "key.key" + suffix;
 
 					URL url = null;
-					if (key.startsWith(HTTP) || key.startsWith(HTTPS)) {
+					if (key.startsWith(Constants.HTTP) || key.startsWith(Constants.HTTPS)) {
 						url = new URL(key);
 					} else {
 						url = new URL(prefix + key);
 					}
 
-					bufferedReader = new BufferedReader(new InputStreamReader(url.openStream(), UTF8));
+					bufferedReader = new BufferedReader(
+							new InputStreamReader(url.openStream(), StandardCharsets.UTF_8));
 					String read;
 					bufferedWriter = new BufferedWriter(new FileWriter(dir + File.separator + "key.key"));
 					while ((read = bufferedReader.readLine()) != null) {
@@ -326,8 +308,9 @@ public class M3U8 {
 				}
 				if (line.contains(".ts")) {
 					String reLine = "";
-					if (line.startsWith(HTTP) || line.startsWith(HTTPS)) {
-						line = dir.replace("\\", "/") + "/" + index + "-" + line.substring(line.lastIndexOf("/") + 1);
+					if (line.startsWith(Constants.HTTP) || line.startsWith(Constants.HTTPS)) {
+						line = dir.replace("\\", "/") + "/" + index + Constants.UNDERLINE
+								+ line.substring(line.lastIndexOf("/") + 1);
 					} else {
 
 						int lastIndexOf = line.lastIndexOf("/");
@@ -336,7 +319,8 @@ public class M3U8 {
 						} else {
 							reLine = line.substring(lastIndexOf + 1);
 						}
-						String replace = line.replace(line, dir + File.separator + index + "-" + reLine);
+						String replace = line.replace(line,
+								dir + File.separator + index + Constants.UNDERLINE + reLine);
 						line = replace;
 					}
 					// 删除xxx.ts?xxxx,后缀
@@ -383,17 +367,18 @@ public class M3U8 {
 		}
 
 	}
-@Deprecated
+
+	@Deprecated
 	public static String writeTS(List<EXTINF> ts) {
 		StringBuilder tsBuilder = new StringBuilder();
 		for (EXTINF extinf : ts) {
 			tsBuilder.append("file ");
 			tsBuilder.append("'");
-			tsBuilder.append("dir" + File.separator + extinf.getIndex() + "-" + extinf.getTsName());
+			tsBuilder.append("dir" + File.separator + extinf.getIndex() + Constants.UNDERLINE + extinf.getTsName());
 			tsBuilder.append("'");
 			tsBuilder.append("\r\n");
 		}
-		String filePath = "dir" + File.separator + TS_TXT;
+		String filePath = "dir" + File.separator + Constants.TS_TXT;
 
 		File tsfile = new File(filePath);
 		FileWriter fileWriter = null;

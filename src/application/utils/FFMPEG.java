@@ -220,7 +220,7 @@ public class FFMPEG {
 		if (isEncrypted(dir)) {
 			command = getCIndexCommand(dir + File.separator + "cindex.m3u8", dir + File.separator + date + ".mp4");
 		} else {
-			command = getTSCommand(dir + File.separator + M3U8.TS_TXT, dir + File.separator + date + ".mp4");
+			command = getTSCommand(dir + File.separator + Constants.TS_TXT, dir + File.separator + date + ".mp4");
 		}
 		processMerge(command, task);
 	}
@@ -231,7 +231,7 @@ public class FFMPEG {
 		if (isEncrypted(dir)) {
 			command = getCIndexCommand(dir + File.separator + "cindex.m3u8", dir + File.separator + date + ".mp4");
 		} else {
-			command = getTSCommand(dir + File.separator + M3U8.TS_TXT, dir + File.separator + date + ".mp4");
+			command = getTSCommand(dir + File.separator + Constants.TS_TXT, dir + File.separator + date + ".mp4");
 		}
 		try {
 			Process videoProcess = new ProcessBuilder(command).redirectErrorStream(true).start();
@@ -426,7 +426,7 @@ public class FFMPEG {
 				if (line.endsWith(".ts")) {
 //					String pre = line.substring(0, line.lastIndexOf("\\") + 1);
 //					String substring = line.substring(line.lastIndexOf("\\") + 1);
-					out.println(line.replace(line, "C:\\Users\\kyh\\Desktop\\m3u8\\xxx\\encrypted\\" + i + "-" + line)); // 替换abc成def
+					out.println(line.replace(line, "C:\\Users\\kyh\\Desktop\\m3u8\\xxx\\encrypted\\" + i + Constants.UNDERLINE + line)); // 替换abc成def
 					i++;
 				} else {
 					out.println(line);
@@ -492,7 +492,7 @@ public class FFMPEG {
 //		multiDownload("http://cdn-yong.bejingyongjiu.com/20200125/1913_7044abc9/index.m3u8",
 //				"C:\\Users\\kyh\\Desktop\\m3u8\\sssszsh\\11");
 		String m3u8 = "https://vip.ffzyread1.com/20230714/15271_e7c46fec/index.m3u8";
-		m3u8="https://video.lllwo2o.com:8091/20180615/DWT6HJU129/index.m3u8";
+		m3u8 = "https://video.lllwo2o.com:8091/20180615/DWT6HJU129/index.m3u8";
 		String dir = "C:\\Users\\sky\\Desktop\\testm3u8\\png";
 		List<EXTINF> ts = M3U8.indexDownload(m3u8, dir);
 		Multi.list(ts, dir);

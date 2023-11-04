@@ -14,9 +14,9 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlSeeAlso({ EXTINF.class })
-public class XMLRoot {
+public class EXTM3U {
 	@XmlElement
-	private String m3u8;// http://xxx/xxx/xxx.m3u8
+	private String url;// http://xxx/xxx/xxx.m3u8
 	@XmlElement
 	private String dir;
 	@XmlElement
@@ -28,12 +28,12 @@ public class XMLRoot {
 	@XmlAnyElement(lax = true)
 	private List<EXTINF> list = new ArrayList<>();
 
-	public String getM3u8() {
-		return m3u8;
+	public String getUrl() {
+		return url;
 	}
 
-	public void setM3u8(String m3u8) {
-		this.m3u8 = m3u8;
+	public void setUrl(String url) {
+		this.url = url;
 	}
 
 	public String getDir() {
